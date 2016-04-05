@@ -1,2 +1,2 @@
-# theos-installer
+# theOS Installer
 theOS Installer
