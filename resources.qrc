@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/res">
+        <file>icon.svg</file>
+        <file>appicon.svg</file>
+    </qresource>
+</RCC>
