@@ -3,4 +3,11 @@
         <file>icon.svg</file>
         <file>appicon.svg</file>
     </qresource>
+    <qresource prefix="/slides">
+        <file>slide01.svg</file>
+        <file>slide02.svg</file>
+        <file>slide03.svg</file>
+        <file>slide04.svg</file>
+        <file>slide05.svg</file>
+    </qresource>
 </RCC>

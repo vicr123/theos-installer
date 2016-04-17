@@ -13,6 +13,7 @@
 #include <QScrollBar>
 #include <QDesktopWidget>
 #include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
 #include "internetconnection.h"
 #include "worker.h"
 #include <stdio.h>

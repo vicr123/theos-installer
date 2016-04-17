@@ -212,7 +212,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>Your PC has at least 4GB free or space reserved for theOS</string>
+      <string>Your PC has at least 6 GB of free or reserved space for theOS</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_5">
@@ -983,7 +983,7 @@
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>441</width>
+       <width>431</width>
        <height>41</height>
       </rect>
      </property>
@@ -1302,179 +1302,6 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="label_11">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>10</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Welcome</string>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="progressThroughInstaller">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>20</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="value">
-     <number>0</number>
-    </property>
-    <property name="textVisible">
-     <bool>false</bool>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-    <property name="invertedAppearance">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_12">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>30</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>System Check</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_20">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>50</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Install Location</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_21">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>70</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Mirrorlist</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_22">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>90</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Confirmation</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_29">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>110</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>User Information</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_30">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>130</y>
-      <width>121</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Installing</string>
-    </property>
-   </widget>
-   <widget class="Line" name="line">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>10</y>
-      <width>20</width>
-      <height>341</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_33">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>320</y>
-      <width>31</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap resource="resources.qrc">:/res/icon.svg</pixmap>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_34">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>320</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>20</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>theOS</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="flag">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>150</y>
-      <width>31</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Flag</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="helpButton">
     <property name="enabled">
      <bool>false</bool>
@@ -1495,32 +1322,230 @@
       <normaloff>.</normaloff>.</iconset>
     </property>
    </widget>
+   <widget class="QGraphicsView" name="slideshow">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>50</y>
+      <width>431</width>
+      <height>261</height>
+     </rect>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+   </widget>
+   <widget class="QFrame" name="sideFrame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>161</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label_21">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>70</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mirrorlist</string>
+     </property>
+    </widget>
+    <widget class="QProgressBar" name="progressThroughInstaller">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>20</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+     <property name="textVisible">
+      <bool>false</bool>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="invertedAppearance">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_22">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>90</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Confirmation</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_29">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>110</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>User Information</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="flag">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>150</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Flag</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_12">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>30</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>System Check</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_30">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>130</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Installing</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>10</y>
+       <width>20</width>
+       <height>341</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_34">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>320</y>
+       <width>91</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>20</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>theOS</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_11">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>10</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Welcome</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_20">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>50</y>
+       <width>121</width>
+       <height>18</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Install Location</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_33">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>320</y>
+       <width>31</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="resources.qrc">:/res/icon.svg</pixmap>
+     </property>
+    </widget>
+   </widget>
    <zorder>quitButton</zorder>
    <zorder>forwardButton</zorder>
    <zorder>backButton</zorder>
    <zorder>progressBar</zorder>
    <zorder>ReadyToInstallFrame</zorder>
    <zorder>CompleteFrame</zorder>
-   <zorder>WelcomeFrame</zorder>
    <zorder>InstallFrame</zorder>
    <zorder>MirrorlistFrame</zorder>
-   <zorder>label_11</zorder>
-   <zorder>progressThroughInstaller</zorder>
-   <zorder>label_12</zorder>
-   <zorder>label_20</zorder>
-   <zorder>label_21</zorder>
-   <zorder>label_22</zorder>
-   <zorder>label_29</zorder>
-   <zorder>label_30</zorder>
-   <zorder>line</zorder>
    <zorder>waitingFrame</zorder>
    <zorder>ConfirmFrame</zorder>
-   <zorder>label_33</zorder>
-   <zorder>label_34</zorder>
-   <zorder>flag</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
    <zorder>InstallingFrame</zorder>
+   <zorder>slideshow</zorder>
+   <zorder>WelcomeFrame</zorder>
+   <zorder>sideFrame</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

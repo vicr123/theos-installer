@@ -186,10 +186,10 @@ void installWorker::process() {
     standardOutput.append("[theos_installer] Installing additional packages...\n");
     emit output(standardOutput);
 
-    p->start(QString("pacstrap /mnt xf86-video-vesa xf86-video-intel xf86-video-nouveau xf86-video-vmware")
-             .append(" virtualbox-guest-utils xorg-server xorg-xinit xf86-input-synaptics lightdm")
-             .append(" networkmanager gtk3 breeze-gtk chromium konsole kinfocenter partitionmanager ntfs-3g")
-             .append(" hfsprogs dolphin kate bluez bluedevil libreoffice-fresh hunspell hunspell-en amarok dragon kdegraphics-okular")
+    p->start(QString("pacstrap /mnt xf86-video-vesa xf86-video-intel xf86-video-nouveau xf86-video-vmware kde-cli-tools kdesu")
+             .append(" virtualbox-guest-utils xorg-server xorg-xinit xf86-input-synaptics lightdm breeze breeze-gtk breeze-icons")
+             .append(" breeze-kde4 networkmanager gtk3 breeze-gtk chromium konsole kinfocenter partitionmanager ntfs-3g")
+             .append(" hfsprogs kate bluez bluedevil libreoffice-fresh hunspell hunspell-en amarok dragon kdegraphics-okular")
              .append(" ksuperkey kscreen user-manager kdeconnect gstreamer0.10 gstreamer0.10-bad gstreamer0.10-plugins")
              .append(" gstreamer0.10-base gstreamer0.10-base-plugins gstreamer0.10-ffmpeg gstreamer0.10-good")
              .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")

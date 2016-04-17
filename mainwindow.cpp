@@ -25,6 +25,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->label_26->setVisible(false);
     ui->pushButton->setEnabled(false);
     ui->progressBar->setVisible(false);
+    ui->slideshow->setVisible(false);
+
+    QGraphicsScene* s = new QGraphicsScene();
+    s->addPixmap(QPixmap(":/slides/slide02.svg"));
+    s->setSceneRect(0, 0, ui->slideshow->width(), ui->slideshow->height());
+    ui->slideshow->setScene(s);
 
     ui->flag->setPixmap(QIcon::fromTheme("flag").pixmap(24,24));
 
@@ -155,94 +161,166 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
     a->setEasingCurve(QEasingCurve::OutCubic);
     a->start();
 
-    //ui->progressThroughInstaller->setValue(switchTo);
+    QParallelAnimationGroup* animationGroup = new QParallelAnimationGroup();
+
+    QPropertyAnimation* welcomeAnim = new QPropertyAnimation(ui->WelcomeFrame, "geometry");
+    welcomeAnim->setStartValue(QRect(160, 10, ui->WelcomeFrame->width(), ui->WelcomeFrame->height()));
+    welcomeAnim->setEndValue(QRect(-291, 10, ui->WelcomeFrame->width(), ui->WelcomeFrame->height()));
+    welcomeAnim->setDuration(500);
+    welcomeAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(welcomeAnim);
+
+    QPropertyAnimation* confirmAnim = new QPropertyAnimation(ui->ConfirmFrame, "geometry");
+    confirmAnim->setStartValue(QRect(160, 10, ui->ConfirmFrame->width(), ui->ConfirmFrame->height()));
+    confirmAnim->setEndValue(QRect(-291, 10, ui->ConfirmFrame->width(), ui->ConfirmFrame->height()));
+    confirmAnim->setDuration(500);
+    confirmAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(confirmAnim);
+
+    QPropertyAnimation* installAnim = new QPropertyAnimation(ui->InstallFrame, "geometry");
+    installAnim->setStartValue(QRect(160, 10, ui->InstallFrame->width(), ui->InstallFrame->height()));
+    installAnim->setEndValue(QRect(-291, 10, ui->InstallFrame->width(), ui->InstallFrame->height()));
+    installAnim->setDuration(500);
+    installAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(installAnim);
+
+    QPropertyAnimation* mirrorAnim = new QPropertyAnimation(ui->MirrorlistFrame, "geometry");
+    mirrorAnim->setStartValue(QRect(160, 10, ui->MirrorlistFrame->width(), ui->MirrorlistFrame->height()));
+    mirrorAnim->setEndValue(QRect(-291, 10, ui->MirrorlistFrame->width(), ui->MirrorlistFrame->height()));
+    mirrorAnim->setDuration(500);
+    mirrorAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(mirrorAnim);
+
+    QPropertyAnimation* readyAnim = new QPropertyAnimation(ui->ReadyToInstallFrame, "geometry");
+    readyAnim->setStartValue(QRect(160, 10, ui->ReadyToInstallFrame->width(), ui->ReadyToInstallFrame->height()));
+    readyAnim->setEndValue(QRect(-291, 10, ui->ReadyToInstallFrame->width(), ui->ReadyToInstallFrame->height()));
+    readyAnim->setDuration(500);
+    readyAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(readyAnim);
+
+    QPropertyAnimation* infoAnim = new QPropertyAnimation(ui->UserInfoFrame, "geometry");
+    infoAnim->setStartValue(QRect(160, 10, ui->UserInfoFrame->width(), ui->UserInfoFrame->height()));
+    infoAnim->setEndValue(QRect(-291, 10, ui->UserInfoFrame->width(), ui->UserInfoFrame->height()));
+    infoAnim->setDuration(500);
+    infoAnim->setEasingCurve(QEasingCurve::InOutCubic);
+    animationGroup->addAnimation(infoAnim);
+
     switch (switchTo) {
     case 0:
-            ui->WelcomeFrame->setVisible(true);
-            ui->ConfirmFrame->setVisible(false);
-            ui->InstallFrame->setVisible(false);
-            ui->MirrorlistFrame->setVisible(false);
-            ui->ReadyToInstallFrame->setVisible(false);
-            ui->InstallingFrame->setVisible(false);
-            ui->CompleteFrame->setVisible(false);
-            ui->UserInfoFrame->setVisible(false);
-            ui->backButton->setVisible(false);
-            ui->forwardButton->setEnabled(true);
+        welcomeAnim->setStartValue(QRect(619, 10, ui->WelcomeFrame->width(), ui->WelcomeFrame->height()));
+        welcomeAnim->setEndValue(QRect(160, 10, ui->WelcomeFrame->width(), ui->WelcomeFrame->height()));
         break;
     case 1:
-            ui->WelcomeFrame->setVisible(false);
-            ui->ConfirmFrame->setVisible(true);
-            ui->InstallFrame->setVisible(false);
-            ui->MirrorlistFrame->setVisible(false);
-            ui->ReadyToInstallFrame->setVisible(false);
-            ui->InstallingFrame->setVisible(false);
-            ui->CompleteFrame->setVisible(false);
-            ui->UserInfoFrame->setVisible(false);
-            ui->backButton->setVisible(true);
-            performSanityChecks(true);
+        confirmAnim->setStartValue(QRect(619, 10, ui->ConfirmFrame->width(), ui->ConfirmFrame->height()));
+        confirmAnim->setEndValue(QRect(160, 10, ui->ConfirmFrame->width(), ui->ConfirmFrame->height()));
+
+        performSanityChecks(true);
         break;
     case 2:
-        ui->WelcomeFrame->setVisible(false);
-        ui->ConfirmFrame->setVisible(false);
-        ui->InstallFrame->setVisible(true);
-        ui->MirrorlistFrame->setVisible(false);
-        ui->ReadyToInstallFrame->setVisible(false);
-        ui->InstallingFrame->setVisible(false);
-        ui->CompleteFrame->setVisible(false);
-        ui->UserInfoFrame->setVisible(false);
+        installAnim->setStartValue(QRect(619, 10, ui->InstallFrame->width(), ui->InstallFrame->height()));
+        installAnim->setEndValue(QRect(160, 10, ui->InstallFrame->width(), ui->InstallFrame->height()));
 
         updatePartitionList();
         break;
     case 3:
-        ui->WelcomeFrame->setVisible(false);
-        ui->ConfirmFrame->setVisible(false);
-        ui->InstallFrame->setVisible(false);
-        ui->MirrorlistFrame->setVisible(true);
-        ui->ReadyToInstallFrame->setVisible(false);
-        ui->InstallingFrame->setVisible(false);
-        ui->CompleteFrame->setVisible(false);
-        ui->UserInfoFrame->setVisible(false);
-        ui->forwardButton->setText("Next");
-        ui->forwardButton->setIcon(QIcon::fromTheme("go-next"));
-        ui->forwardButton->setEnabled(false);
+        mirrorAnim->setStartValue(QRect(619, 10, ui->MirrorlistFrame->width(), ui->MirrorlistFrame->height()));
+        mirrorAnim->setEndValue(QRect(160, 10, ui->MirrorlistFrame->width(), ui->MirrorlistFrame->height()));
+
         break;
     case 4:
-        ui->WelcomeFrame->setVisible(false);
-        ui->ConfirmFrame->setVisible(false);
-        ui->InstallFrame->setVisible(false);
-        ui->MirrorlistFrame->setVisible(false);
-        ui->ReadyToInstallFrame->setVisible(true);
-        ui->InstallingFrame->setVisible(false);
-        ui->CompleteFrame->setVisible(false);
-        ui->UserInfoFrame->setVisible(false);
-        ui->forwardButton->setText("Install!");
-        ui->forwardButton->setIcon(QIcon::fromTheme("dialog-ok"));
+        readyAnim->setStartValue(QRect(619, 10, ui->ReadyToInstallFrame->width(), ui->ReadyToInstallFrame->height()));
+        readyAnim->setEndValue(QRect(160, 10, ui->ReadyToInstallFrame->width(), ui->ReadyToInstallFrame->height()));
+
         break;
 
     case 5:
-        ui->WelcomeFrame->setVisible(false);
-        ui->ConfirmFrame->setVisible(false);
-        ui->InstallFrame->setVisible(false);
-        ui->MirrorlistFrame->setVisible(false);
-        ui->ReadyToInstallFrame->setVisible(false);
-        ui->UserInfoFrame->setVisible(true);
-        ui->InstallingFrame->setVisible(false);
-        ui->CompleteFrame->setVisible(false);
-        ui->backButton->setVisible(false);
-        ui->forwardButton->setEnabled(false);
+        infoAnim->setStartValue(QRect(619, 10, ui->UserInfoFrame->width(), ui->UserInfoFrame->height()));
+        infoAnim->setEndValue(QRect(160, 10, ui->UserInfoFrame->width(), ui->UserInfoFrame->height()));
+
         break;
     case 6:
+        QPropertyAnimation* installingAnim = new QPropertyAnimation(ui->InstallingFrame, "geometry");
+        installingAnim->setStartValue(QRect(160, 10, ui->InstallingFrame->width(), ui->InstallingFrame->height()));
+        installingAnim->setEndValue(QRect(-291, 10, ui->InstallingFrame->width(), ui->InstallingFrame->height()));
+        installingAnim->setDuration(500);
+        installingAnim->setEasingCurve(QEasingCurve::InOutCubic);
+        installingAnim->setStartValue(QRect(619, 10, ui->InstallingFrame->width(), ui->InstallingFrame->height()));
+        installingAnim->setEndValue(QRect(160, 10, ui->InstallingFrame->width(), ui->InstallingFrame->height()));
+
+        animationGroup->addAnimation(installingAnim);
+        ui->InstallingFrame->setVisible(true);
+
+        break;
+    }
+
+    connect(animationGroup, &QParallelAnimationGroup::finished, [=]() {
         ui->WelcomeFrame->setVisible(false);
         ui->ConfirmFrame->setVisible(false);
         ui->InstallFrame->setVisible(false);
         ui->MirrorlistFrame->setVisible(false);
         ui->ReadyToInstallFrame->setVisible(false);
-        ui->UserInfoFrame->setVisible(false);
-        ui->InstallingFrame->setVisible(true);
+        ui->InstallingFrame->setVisible(false);
         ui->CompleteFrame->setVisible(false);
-        ui->forwardButton->setVisible(false);
-        break;
-    }
+        ui->UserInfoFrame->setVisible(false);
+
+        switch (switchTo) {
+        case 0:
+            ui->WelcomeFrame->setVisible(true);
+            ui->forwardButton->setEnabled(true);
+            ui->backButton->setVisible(false);
+
+            ui->WelcomeFrame->raise();
+            break;
+        case 1:
+            ui->ConfirmFrame->setVisible(true);
+            ui->backButton->setVisible(true);
+
+            ui->ConfirmFrame->raise();
+            break;
+        case 2:
+            ui->InstallFrame->setVisible(true);
+
+            ui->InstallFrame->raise();
+
+            break;
+        case 3:
+            ui->MirrorlistFrame->setVisible(true);
+            ui->forwardButton->setText("Next");
+            ui->forwardButton->setIcon(QIcon::fromTheme("go-next"));
+            ui->forwardButton->setEnabled(false);
+
+            ui->MirrorlistFrame->raise();
+            break;
+        case 4:
+            ui->ReadyToInstallFrame->setVisible(true);
+            ui->forwardButton->setText("Install!");
+            ui->forwardButton->setIcon(QIcon::fromTheme("dialog-ok"));
+
+            ui->ReadyToInstallFrame->raise();
+            break;
+
+        case 5:
+            ui->UserInfoFrame->setVisible(true);
+            ui->UserInfoFrame->raise();
+            break;
+        case 6:
+            ui->InstallingFrame->setVisible(true);
+            ui->InstallingFrame->raise();
+            break;
+        }
+
+        ui->waitingFrame->raise();
+        ui->sideFrame->raise();
+    });
+
+    animationGroup->start();
+    ui->WelcomeFrame->setVisible(true);
+    ui->ConfirmFrame->setVisible(true);
+    ui->InstallFrame->setVisible(true);
+    ui->MirrorlistFrame->setVisible(true);
+    ui->ReadyToInstallFrame->setVisible(true);
+    //ui->CompleteFrame->setVisible(true);
+    ui->UserInfoFrame->setVisible(true);
 }
 
 void MainWindow::updatePartitionList() {
