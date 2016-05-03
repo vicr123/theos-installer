@@ -119,7 +119,7 @@
        <x>10</x>
        <y>80</y>
        <width>431</width>
-       <height>61</height>
+       <height>81</height>
       </rect>
      </property>
      <property name="text">
@@ -1530,6 +1530,7 @@
      </property>
     </widget>
    </widget>
+   <zorder>InstallingFrame</zorder>
    <zorder>quitButton</zorder>
    <zorder>forwardButton</zorder>
    <zorder>backButton</zorder>
@@ -1542,7 +1543,6 @@
    <zorder>ConfirmFrame</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
-   <zorder>InstallingFrame</zorder>
    <zorder>slideshow</zorder>
    <zorder>WelcomeFrame</zorder>
    <zorder>sideFrame</zorder>

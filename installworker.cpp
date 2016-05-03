@@ -188,8 +188,8 @@ void installWorker::process() {
 
     p->start(QString("pacstrap /mnt xf86-video-vesa xf86-video-intel xf86-video-nouveau xf86-video-vmware kde-cli-tools kdesu")
              .append(" virtualbox-guest-utils xorg-server xorg-xinit xf86-input-synaptics lightdm breeze breeze-gtk breeze-icons")
-             .append(" breeze-kde4 networkmanager gtk3 breeze-gtk chromium konsole kinfocenter partitionmanager ntfs-3g")
-             .append(" hfsprogs kate bluez bluedevil libreoffice-fresh hunspell hunspell-en amarok dragon kdegraphics-okular")
+             .append(" breeze-kde4 networkmanager gtk3 breeze-gtk chromium kinfocenter partitionmanager ntfs-3g")
+             .append(" hfsprogs kate bluez bluedevil libreoffice-fresh hunspell hunspell-en kdegraphics-okular")
              .append(" ksuperkey kscreen user-manager kdeconnect gstreamer0.10 gstreamer0.10-bad gstreamer0.10-plugins")
              .append(" gstreamer0.10-base gstreamer0.10-base-plugins gstreamer0.10-ffmpeg gstreamer0.10-good")
              .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")
@@ -215,7 +215,7 @@ void installWorker::process() {
 
     QFile chfnDefault("/mnt/etc/login.defs");
     chfnDefault.open(QFile::ReadOnly);
-    QString chfnDefaults(grubDefault.readAll());
+    QString chfnDefaults(chfnDefault.readAll());
     chfnDefault.close();
 
     QStringList chfnDefaultsArray = chfnDefaults.split("\n");
