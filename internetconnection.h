@@ -26,6 +26,7 @@ class InternetConnection : public QDialog
     Q_OBJECT
 
 public:
+
     explicit InternetConnection(QWidget *parent = 0);
     ~InternetConnection();
 

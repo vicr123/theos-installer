@@ -73,10 +73,10 @@ void installWorker::process() {
     }
 
     emit message("Downloading and copying new files...");
-    standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel\n");
+    standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel linux-headers\n");
     emit output(standardOutput);
 
-    p->start("pacstrap /mnt base base-devel");
+    p->start("pacstrap /mnt base base-devel linux-headers");
     p->waitForFinished(-1);
     if (p->exitCode() != 0) {
         emit message("An error occurred. Inspect the output to see what happened.");
@@ -103,6 +103,7 @@ void installWorker::process() {
     QFile hostnameFile("/mnt/etc/hostname");
     hostnameFile.open(QFile::WriteOnly);
     hostnameFile.write(parentWindow->hostname.toUtf8());
+    hostnameFile.close();
 
     standardOutput.append("[theos_installer] Generating locales...\n");
     QFile::copy("/etc/locale.gen", "/mnt/etc/locale.gen");
@@ -239,7 +240,7 @@ void installWorker::process() {
     p->start("useradd -R /mnt -g wheel -M " + parentWindow->loginname);
     p->waitForFinished(-1);
 
-    p->start("arch-chroot /mnt chfn -f \"" + parentWindow->fullname + "\"" + parentWindow->loginname);
+    p->start("arch-chroot /mnt chfn -f \"" + parentWindow->fullname + "\" " + parentWindow->loginname);
     p->waitForFinished(-1);
 
     p->start("chpasswd -R /mnt");

@@ -44,7 +44,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    if (stage == 5 || stage == 6) {
+    if (stage == UserInfo || stage == InstallProgress) {
         QMessageBox::warning(this, "Quit Setup", "We're currently installing theOS. You can't quit setup while we're doing this.", QMessageBox::Ok);
         event->ignore();
     } else if (stage == 7) {
@@ -61,7 +61,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::on_forwardButton_clicked()
 {
-    if (stage == 1) {
+    if (stage == SystemCheck) {
         QFile *adapter = new QFile("/sys/class/power_supply/AC/online");
         if (!adapter->exists()) {
             adapter = new QFile("/sys/class/power_supply/ADP1/online");
@@ -75,7 +75,7 @@ void MainWindow::on_forwardButton_clicked()
                 return;
             }
         }
-    } else if (stage == 2) {
+    } else if (stage == Partition) {
         if (QDir("/sys/firmware/efi").exists()) {
             QProcess* lsblk = new QProcess();
             lsblk->start("lsblk --output PARTTYPE");
@@ -86,7 +86,7 @@ void MainWindow::on_forwardButton_clicked()
                 }
             }
         }
-    } else if (stage == 3) {
+    } else if (stage == Mirrorlist) {
         if (ui->radioButton->isChecked()) {
             if (!dryrun) {
                 QFile mirrorlist("/etc/pacman.d/mirrorlist");
@@ -104,7 +104,7 @@ void MainWindow::on_forwardButton_clicked()
         summary.append("--------------------");
 
         ui->textBrowser->setText(summary);
-    } else if (stage == 4) {
+    } else if (stage == Confirm) {
         ui->quitButton->setVisible(false);
         //this->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
         //this->setWindowFlags(this->windowFlags() ^ Qt::WindowCloseButtonHint);
@@ -128,26 +128,25 @@ void MainWindow::on_forwardButton_clicked()
 
         ui->forwardButton->setText("Next");
         ui->forwardButton->setIcon(QIcon::fromTheme("go-next"));
-    } else if (stage == 5) {
+    } else if (stage == UserInfo) {
         fullname = ui->fullname->text();
         loginname = ui->loginname->text();
         password = ui->password->text();
         hostname = ui->hostname->text();
-    } else if (stage == 7) {
-        sync();
-        reboot(LINUX_REBOOT_CMD_RESTART);
+    } else if (stage == Finish) {
+        QProcess::startDetached("shutdown -r now");
         return;
     }
-    stage++;
+    stage = (stageType) (stage + 1);
     changeScreen(stage, true);
 }
 
 void MainWindow::on_backButton_clicked()
 {
-    if (stage == 7) {
+    if (stage == Finish) {
         this->close();
     }
-    stage--;
+    stage = (stageType) (stage - 1);
     changeScreen(stage, false);
 }
 
@@ -264,26 +263,28 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
         ui->UserInfoFrame->setVisible(false);
 
         switch (switchTo) {
-        case 0:
+        case Welcome:
             ui->WelcomeFrame->setVisible(true);
+            sync();
+            reboot(LINUX_REBOOT_CMD_RESTART);
             ui->forwardButton->setEnabled(true);
             ui->backButton->setVisible(false);
 
             ui->WelcomeFrame->raise();
             break;
-        case 1:
+        case SystemCheck:
             ui->ConfirmFrame->setVisible(true);
             ui->backButton->setVisible(true);
 
             ui->ConfirmFrame->raise();
             break;
-        case 2:
+        case Partition:
             ui->InstallFrame->setVisible(true);
 
             ui->InstallFrame->raise();
 
             break;
-        case 3:
+        case Mirrorlist:
             ui->MirrorlistFrame->setVisible(true);
             ui->forwardButton->setText("Next");
             ui->forwardButton->setIcon(QIcon::fromTheme("go-next"));
@@ -291,7 +292,7 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
 
             ui->MirrorlistFrame->raise();
             break;
-        case 4:
+        case Confirm:
             ui->ReadyToInstallFrame->setVisible(true);
             ui->forwardButton->setText("Install!");
             ui->forwardButton->setIcon(QIcon::fromTheme("dialog-ok"));
@@ -299,11 +300,11 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
             ui->ReadyToInstallFrame->raise();
             break;
 
-        case 5:
+        case UserInfo:
             ui->UserInfoFrame->setVisible(true);
             ui->UserInfoFrame->raise();
             break;
-        case 6:
+        case InstallProgress:
             ui->InstallingFrame->setVisible(true);
             ui->InstallingFrame->raise();
             break;
@@ -703,7 +704,7 @@ void MainWindow::checkUserInfo() {
 }
 
 void MainWindow::install_complete() {
-    stage = 7;
+    stage = Finish;
 
     ui->CompleteFrame->setVisible(true);
     ui->InstallingFrame->setVisible(false);

@@ -32,6 +32,17 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    enum stageType {
+        Welcome = 0,
+        SystemCheck = 1,
+        Partition = 2,
+        Mirrorlist = 3,
+        Confirm = 4,
+        UserInfo = 5,
+        InstallProgress = 6,
+        Finish = 7
+    };
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
@@ -96,7 +107,7 @@ private slots:
     void on_fullname_textEdited(const QString &arg1);
 
 private:
-    int stage = 0;
+    stageType stage = Welcome;
     QString mirrors;
 
     QThread *installThread;
