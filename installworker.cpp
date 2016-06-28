@@ -163,6 +163,7 @@ void installWorker::process() {
     for (QString line : grubDefaultsArray) {
         grubDefaults.append(line + "\n");
     }
+    p->waitForFinished(-1);
 
     grubDefault.open(QFile::WriteOnly);
     grubDefault.write(grubDefaults.toUtf8());

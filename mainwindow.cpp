@@ -265,8 +265,6 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
         switch (switchTo) {
         case Welcome:
             ui->WelcomeFrame->setVisible(true);
-            sync();
-            reboot(LINUX_REBOOT_CMD_RESTART);
             ui->forwardButton->setEnabled(true);
             ui->backButton->setVisible(false);
 
@@ -410,7 +408,7 @@ bool MainWindow::performSanityChecks(bool progressBar) {
     ui->backButton->setEnabled(false);
     ui->forwardButton->setEnabled(false);
 
-    ui->SpaceLabel->setPixmap(QIcon::fromTheme("go-next").pixmap(22));
+    ui->SpaceLabel->setPixmap(QIcon::fromTheme("go-next").pixmap(16, 16));
     if (progressBar) {
         ui->progressBar->setMaximum(0);
         ui->progressBar->setVisible(true);
@@ -434,9 +432,9 @@ bool MainWindow::performSanityChecks(bool progressBar) {
     }
 
     if (battery) {
-        ui->PowerLabel->setPixmap(QIcon::fromTheme("dialog-ok").pixmap(22));
+        ui->PowerLabel->setPixmap(QIcon::fromTheme("dialog-ok").pixmap(16, 16));
     } else {
-        ui->PowerLabel->setPixmap(QIcon::fromTheme("dialog-cancel").pixmap(22));
+        ui->PowerLabel->setPixmap(QIcon::fromTheme("dialog-cancel").pixmap(16, 16));
     }
 
     if (performNetworkCheck) {
@@ -583,9 +581,8 @@ void MainWindow::on_pushButton_2_clicked()
     QFile mirrorlist("/etc/pacman.d/mirrorlist");
     mirrorlist.open(QFile::ReadOnly);
     QStringList readMirrorlist(QString(mirrorlist.readAll()).split("\n"));
-    QStringList editedMirrorlist;
 
-    bool moveNextLineToTop = false;
+    /*bool moveNextLineToTop = false;
     for (QString line : readMirrorlist) {
         if (moveNextLineToTop) {
             moveNextLineToTop = false;
@@ -596,10 +593,29 @@ void MainWindow::on_pushButton_2_clicked()
         }
     }
 
-    editedMirrorlist.append(readMirrorlist);
+    editedMirrorlist.append(readMirrorlist);*/
+
+
+
+    bool readLine;
+    for (QString line : readMirrorlist) {
+        if (readLine) {
+            if (line == "") {
+                readLine = false;
+            } else {
+                int index = readMirrorlist.indexOf(line);
+                line.remove("#");
+                readMirrorlist.replace(index, line);
+            }
+        } else {
+            if (line.endsWith(ui->CountryDropDown->currentText(), Qt::CaseInsensitive)) {
+                readLine = true;
+            }
+        }
+    }
 
     QString finalMirrorList("");
-    for (QString line : editedMirrorlist) {
+    for (QString line : readMirrorlist) {
         finalMirrorList.append(line + "\n");
     }
 

@@ -1538,12 +1538,12 @@
    <zorder>ReadyToInstallFrame</zorder>
    <zorder>CompleteFrame</zorder>
    <zorder>InstallFrame</zorder>
-   <zorder>MirrorlistFrame</zorder>
    <zorder>waitingFrame</zorder>
    <zorder>ConfirmFrame</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
    <zorder>slideshow</zorder>
+   <zorder>MirrorlistFrame</zorder>
    <zorder>WelcomeFrame</zorder>
    <zorder>sideFrame</zorder>
   </widget>
