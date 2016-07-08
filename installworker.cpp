@@ -195,7 +195,7 @@ void installWorker::process() {
              .append(" ksuperkey kscreen user-manager kdeconnect gstreamer0.10 gstreamer0.10-bad gstreamer0.10-plugins")
              .append(" gstreamer0.10-base gstreamer0.10-base-plugins gstreamer0.10-ffmpeg gstreamer0.10-good")
              .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")
-             .append(" gst-plugins-ugly kmail korganizer cups ark kcalc gwenview alsa-utils pulseaudio pulseaudio-alsa"));
+             .append(" gst-plugins-ugly kmail korganizer cups ark kcalc gwenview alsa-utils pulseaudio pulseaudio-alsa festival festival-english"));
     p->waitForFinished(-1);
 
     QDir localPackagesDir("/root/.packages/");
