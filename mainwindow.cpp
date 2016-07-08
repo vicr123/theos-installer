@@ -1,6 +1,21 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+QString calculateSize(quint64 size) {
+    QString ret;
+    if (size > 1073741824) {
+        ret = QString::number(((float) size / 1024 / 1024 / 1024), 'f', 2).append(" GiB");
+    } else if (size > 1048576) {
+        ret = QString::number(((float) size / 1024 / 1024), 'f', 2).append(" MiB");
+    } else if (size > 1024) {
+        ret = QString::number(((float) size / 1024), 'f', 2).append(" KiB");
+    } else {
+        ret = QString::number((float) size, 'f', 2).append(" B");
+    }
+
+    return ret;
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -21,7 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->InstallingFrame->setVisible(false);
     ui->CompleteFrame->setVisible(false);
     ui->connectInternet->setVisible(false);
-    ui->noPartitions->setVisible(false);
     ui->label_26->setVisible(false);
     ui->pushButton->setEnabled(false);
     ui->progressBar->setVisible(false);
@@ -75,8 +89,28 @@ void MainWindow::on_forwardButton_clicked()
                 return;
             }
         }
+
+        ui->driveBox->clear();
+        QProcess *lsblk = new QProcess(this);
+        lsblk->start("lsblk -rb");
+
+        lsblk->waitForFinished();
+        QByteArray output = lsblk->readAllStandardOutput();
+        for (QString part : QString(output).split("\n")) {
+            if (part != "") {
+                QStringList parse = part.split(" ");
+                if (parse.first().startsWith("sd") && parse.first().length() == 3) {
+                    ui->driveBox->addItem("/dev/" + parse.first() + " (" + calculateSize(parse.at(3).toLongLong()) + ")", parse.first());
+                }
+            }
+        }
+
+        ui->forwardButton->setEnabled(false);
+        ui->partition_dualBoot->setVisible(false);
+        delete lsblk;
+
     } else if (stage == Partition) {
-        if (QDir("/sys/firmware/efi").exists()) {
+        /*if (QDir("/sys/firmware/efi").exists()) {
             QProcess* lsblk = new QProcess();
             lsblk->start("lsblk --output PARTTYPE");
             lsblk->waitForFinished();
@@ -85,7 +119,7 @@ void MainWindow::on_forwardButton_clicked()
                     return;
                 }
             }
-        }
+        }*/
     } else if (stage == Mirrorlist) {
         if (ui->radioButton->isChecked()) {
             if (!dryrun) {
@@ -323,85 +357,7 @@ void MainWindow::changeScreen(int switchTo, bool movingForward) {
 }
 
 void MainWindow::updatePartitionList() {
-    ui->partitions->clear();
-    ui->forwardButton->setEnabled(false);
-    /*QProcess *osprober = new QProcess(this);
-    osprober->start("os-prober");
-    osprober->waitForStarted(-1);
-    osprober->waitForFinished(-1);
-    QString osproberoutput(osprober->readAllStandardOutput());
-    qDebug() << osproberoutput;
-    QStringList proberOutput = osproberoutput.split("\n");*/
 
-    QProcess *lsblk = new QProcess(this);
-    lsblk->start("lsblk -rf");
-
-    lsblk->waitForFinished();
-    QByteArray output = lsblk->readAllStandardOutput();
-    for (QString part : QString(output).split("\n")) {
-        if (part != "") {
-            QStringList parse = part.split(" ");
-            /*for (int i = parse.length() - 1; i > 1; i--) {
-                if (parse[i] == "") {
-                    parse.removeAt(i);
-                }
-            }*/
-            if (parse.length() > 3) {
-                if (part.split(" ")[1] == "ext4") {
-                    if (parse[4] != "/") {
-                        /*QString installedOs = "";
-
-                        for (QString installed : proberOutput) {
-                            QStringList split = installed.split(":");
-                            if (split[0].contains(parse[0])) {
-                                if (split[1] == "") {
-                                    installedOs = split[2];
-                                } else {
-                                    installedOs = split[1];
-                                }
-                                break;
-                            }
-                        }*/
-
-                        QListWidgetItem *i = new QListWidgetItem(ui->partitions);
-                        //if (installedOs == "") {
-                            i->setText("/dev/" + parse[0] + " " + parse[2]);
-                        /*} else {
-                            i->setText("/dev/" + parse[0] + " " + parse[2] + " (" + installedOs + " is installed here)");
-                        }*/
-                        ui->partitions->addItem(i);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /*if (proberOutput.count() > 0 && proberOutput[0] != "") {
-        QString installedOs = "Currently";
-        for (QString installed : proberOutput) {
-            if (installed == "") {
-                continue;
-            }
-            qDebug() << installed;
-            QStringList split = installed.split(":");
-            qDebug() << split;
-            if (split[1] == "") {
-                installedOs.append(", " + split[2]);
-            } else {
-                installedOs.append(", " + split[1]);
-            }
-        }
-        installedOs.append(" is installed.");
-
-        ui->label_8->setText(installedOs);
-    }*/
-
-    if (ui->partitions->count() == 0) {
-        ui->noPartitions->setVisible(true);
-    } else {
-        ui->noPartitions->setVisible(false);
-    }
 }
 
 bool MainWindow::performSanityChecks(bool progressBar) {
@@ -520,19 +476,6 @@ void MainWindow::on_environment_check_done(int returnVal) {
     //if (progressBar) {
         ui->progressBar->setVisible(false);
     //}
-}
-
-void MainWindow::on_formatCheck_toggled(bool checked)
-{
-    if (checked) {
-        if (QMessageBox::warning(this, "Continue?", "Formatting a partition destroys all data on it.", QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Cancel) {
-            ui->formatCheck->setChecked(false);
-        } else {
-            formatPartition = true;
-        }
-    } else {
-        formatPartition = false;
-    }
 }
 
 void MainWindow::on_recheck_2_clicked()
@@ -742,5 +685,22 @@ void MainWindow::on_fullname_textEdited(const QString &arg1)
 {
     if (arg1.split(" ").count() >= 1) {
         ui->loginname->setText(arg1.split(" ").at(0).toLower());
+    }
+}
+
+
+void MainWindow::on_partition_eraseDrive_clicked()
+{
+    EraseDriveDialog* dialog = new EraseDriveDialog(ui->driveBox->currentData().toString(), this);
+    if (dialog->exec() == QDialog::Accepted) {
+        on_forwardButton_clicked();
+    }
+}
+
+void MainWindow::on_partition_manualMount_clicked()
+{
+    QProcess::startDetached("theterminal");
+    if (QMessageBox::information(this, "Manual Mount", "Mount your drives on /mnt, and click OK when done.", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok) {
+        on_forwardButton_clicked();
     }
 }

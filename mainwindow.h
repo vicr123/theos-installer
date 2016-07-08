@@ -16,6 +16,7 @@
 #include <QParallelAnimationGroup>
 #include "internetconnection.h"
 #include "worker.h"
+#include "erasedrivedialog.h"
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
@@ -72,8 +73,6 @@ private slots:
 
     void on_environment_check_done(int returnVal);
 
-    void on_formatCheck_toggled(bool checked);
-
     void on_recheck_2_clicked();
 
     void on_partitions_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
@@ -105,6 +104,10 @@ private slots:
     void on_hostname_textEdited(const QString &arg1);
 
     void on_fullname_textEdited(const QString &arg1);
+
+    void on_partition_eraseDrive_clicked();
+
+    void on_partition_manualMount_clicked();
 
 private:
     stageType stage = Welcome;

@@ -6,6 +6,7 @@
 
 QT       += core gui network dbus
 CONFIG   += c++11
+LIBS     += -lparted
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,15 +19,25 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     internetconnection.cpp \
     worker.cpp \
-    installworker.cpp
+    installworker.cpp \
+    partitionwindow.cpp \
+    erasedrivedialog.cpp \
+    driveinfo.cpp \
+    partitionframe.cpp
 
 HEADERS  += mainwindow.h \
     internetconnection.h \
     worker.h \
-    installworker.h
+    installworker.h \
+    partitionwindow.h \
+    erasedrivedialog.h \
+    driveinfo.h \
+    partitionframe.h
 
 FORMS    += mainwindow.ui \
-    internetconnection.ui
+    internetconnection.ui \
+    partitionwindow.ui \
+    erasedrivedialog.ui
 
 RESOURCES += \
     resources.qrc

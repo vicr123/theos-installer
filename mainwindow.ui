@@ -361,7 +361,7 @@
      <rect>
       <x>160</x>
       <y>10</y>
-      <width>451</width>
+      <width>441</width>
       <height>271</height>
      </rect>
     </property>
@@ -374,116 +374,125 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label_7">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>301</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>20</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Install Location</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_8">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>441</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Where do you want to install theOS?</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QListWidget" name="partitions">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>431</width>
-       <height>161</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="part">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>230</y>
-       <width>191</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Open Partition Manager</string>
-     </property>
-     <property name="icon">
-      <iconset theme="partitionmanager">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QCheckBox" name="formatCheck">
-     <property name="geometry">
-      <rect>
-       <x>303</x>
-       <y>230</y>
-       <width>131</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Format Partition</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="recheck_2">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>230</y>
-       <width>80</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Reload</string>
-     </property>
-     <property name="icon">
-      <iconset theme="view-refresh">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-    </widget>
-    <widget class="QLabel" name="noPartitions">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>130</y>
-       <width>411</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>No EXT4 partitions suitable for installation to have been found.</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label_7">
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Install Location</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Where do you want to install theOS?</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>-125</y>
+          <width>409</width>
+          <height>274</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QCommandLinkButton" name="partition_eraseDrive">
+           <property name="text">
+            <string>Erase entire drive and automatically partition it</string>
+           </property>
+           <property name="description">
+            <string>Erases all data on all operating systems on disk. In the next screen, you'll be able to confirm the changes.</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCommandLinkButton" name="partition_dualBoot">
+           <property name="text">
+            <string>Install next to Windows 10</string>
+           </property>
+           <property name="description">
+            <string>Data from Windows 10 will be kept. In the next screen, you'll be able to choose how much space to allocate to theOS.</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCommandLinkButton" name="partition_somethingElse">
+           <property name="text">
+            <string>Something Else</string>
+           </property>
+           <property name="description">
+            <string>Manage Partitions yourself. In the next screen, you'll be able to manage partitions.</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCommandLinkButton" name="partition_manualMount">
+           <property name="text">
+            <string>Manual Mount</string>
+           </property>
+           <property name="description">
+            <string>Use the terminal to mount drives yourself. In the next screen, you'll be able to open a terminal and mount drives yourself.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="label_35">
+         <property name="text">
+          <string>Install on drive</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="driveBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </widget>
    <widget class="QFrame" name="MirrorlistFrame">
     <property name="geometry">
@@ -1537,13 +1546,13 @@
    <zorder>progressBar</zorder>
    <zorder>ReadyToInstallFrame</zorder>
    <zorder>CompleteFrame</zorder>
-   <zorder>InstallFrame</zorder>
    <zorder>waitingFrame</zorder>
    <zorder>ConfirmFrame</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
    <zorder>slideshow</zorder>
    <zorder>MirrorlistFrame</zorder>
+   <zorder>InstallFrame</zorder>
    <zorder>WelcomeFrame</zorder>
    <zorder>sideFrame</zorder>
   </widget>

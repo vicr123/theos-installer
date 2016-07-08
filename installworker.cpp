@@ -15,7 +15,7 @@ void installWorker::process() {
     connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(outputAvaliable()));
     connect(p, SIGNAL(readyReadStandardError()), this, SLOT(errorAvaliable()));
 
-    standardOutput.append("[theos_installer] Executing command umount /mnt\n");
+    /*standardOutput.append("[theos_installer] Executing command umount /mnt\n");
     emit output(standardOutput);
 
     p->start("umount", QStringList() << "/mnt");
@@ -37,9 +37,9 @@ void installWorker::process() {
     emit message("Mounting " + parentWindow->partition + "...");
     standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt\n");
     emit output(standardOutput);
-
     p->start("mount " + parentWindow->partition + " /mnt");
     p->waitForFinished(-1);
+
 
     if (QDir("/sys/firmware/efi").exists()) {
         standardOutput.append("This system is EFI, attempting to mount ESP onto /boot\n");
@@ -70,7 +70,7 @@ void installWorker::process() {
         }
 
 
-    }
+    }*/
 
     emit message("Downloading and copying new files...");
     standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel linux-headers\n");
