@@ -105,6 +105,8 @@ void MainWindow::on_forwardButton_clicked()
             }
         }
 
+
+
         ui->forwardButton->setEnabled(false);
         ui->partition_dualBoot->setVisible(false);
         delete lsblk;

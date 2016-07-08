@@ -51,6 +51,10 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
         showError("There isn't enough space on /dev/" + drive + " to install theOS.");
         return;
     }
+
+    PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", ui->driveLayout);
+    PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", ui->driveLayout);
+
 }
 
 EraseDriveDialog::~EraseDriveDialog()
@@ -67,16 +71,17 @@ void EraseDriveDialog::showError(QString error) {
 
 void EraseDriveDialog::resizeEvent(QResizeEvent *event) {
     if (!error) {
-        for (QObject* child : driveInfo->children()) {
-            delete child;
+        QList<QRect> partitionSizes = driveInfo->getPanelSizes(ui->driveLayout->width(), ui->driveLayout->height());
+        for (QObject* child : ui->driveLayout->children()) {
+            ((QWidget *)child)->setGeometry(partitionSizes.at(ui->driveLayout->children().indexOf(child)));
         }
 
-        QList<QRect> partitionSizes = driveInfo->getPanelSizes(ui->driveLayout->width(), ui->driveLayout->height());
-        PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", ui->driveLayout);
-        PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", ui->driveLayout);
 
-        ext4Partition->setGeometry(partitionSizes.at(0));
-        swapPartition->setGeometry(partitionSizes.at(1));
+        //ext4Partition->setGeometry(partitionSizes.at(0));
+        //swapPartition->setGeometry(partitionSizes.at(1));
+        /*ext4Partition->repaint();
+        swapPartition->repaint();
+        ui->driveLayout->repaint();*/
     }
 }
 

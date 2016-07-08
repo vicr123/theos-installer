@@ -7,6 +7,7 @@ PartitionFrame::PartitionFrame(DriveInfo::PartitionFormat type, qulonglong size,
     this->type = type;
     this->size = size;
     this->label = label;
+    this->setToolTip(this->label + "\n" + calculateSize(this->size));
 }
 
 void PartitionFrame::setPartitionType(DriveInfo::PartitionFormat type) {
@@ -15,10 +16,12 @@ void PartitionFrame::setPartitionType(DriveInfo::PartitionFormat type) {
 
 void PartitionFrame::setPartitionSize(qulonglong size) {
     this->size = size;
+    this->setToolTip(this->label + "\n" + calculateSize(this->size));
 }
 
 void PartitionFrame::setPartitionLabel(QString label) {
     this->label = label;
+    this->setToolTip(this->label + "\n" + calculateSize(this->size));
 }
 
 void PartitionFrame::paintEvent(QPaintEvent *event) {
