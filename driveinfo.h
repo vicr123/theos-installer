@@ -7,6 +7,7 @@
 #include <parted/parted.h>
 #include <QDebug>
 #include <QProcess>
+#include <QApplication>
 
 class DriveInfo : public QObject
 {

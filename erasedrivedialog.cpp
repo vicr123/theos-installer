@@ -41,7 +41,7 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
         showError("There isn't enough space on /dev/" + drive + " to install theOS.");
     }
 
-    driveInfo = new DriveInfo(driveSpace, DriveInfo::gpt);
+    driveInfo = new DriveInfo(driveSpace, DriveInfo::mbr);
 
     if (driveInfo->addPartition(driveSpace - ramSize, DriveInfo::ext4, "theOS") == DriveInfo::driveExtendsPastSize) {
         showError("There isn't enough space on /dev/" + drive + " to install theOS.");
@@ -75,13 +75,6 @@ void EraseDriveDialog::resizeEvent(QResizeEvent *event) {
         for (QObject* child : ui->driveLayout->children()) {
             ((QWidget *)child)->setGeometry(partitionSizes.at(ui->driveLayout->children().indexOf(child)));
         }
-
-
-        //ext4Partition->setGeometry(partitionSizes.at(0));
-        //swapPartition->setGeometry(partitionSizes.at(1));
-        /*ext4Partition->repaint();
-        swapPartition->repaint();
-        ui->driveLayout->repaint();*/
     }
 }
 
@@ -92,6 +85,7 @@ void EraseDriveDialog::on_pushButton_2_clicked()
 
 void EraseDriveDialog::on_pushButton_clicked()
 {
+
     DriveInfo::OperationError error = driveInfo->applyToDrive(this->drive);
     if (error == DriveInfo::success) {
         QProcess::execute("mount /dev/" + this->drive + "1 /mnt");

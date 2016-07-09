@@ -101,6 +101,8 @@ private slots:
 
     void install_complete();
 
+    void install_error();
+
     void on_hostname_textEdited(const QString &arg1);
 
     void on_fullname_textEdited(const QString &arg1);

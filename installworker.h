@@ -15,7 +15,7 @@ public:
     installWorker(MainWindow *parent);
     ~installWorker();
 public slots:
-    void process();
+    void process(bool useOfflineMethod = true);
 
     void lastProcessFinished(int);
 

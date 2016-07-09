@@ -8,93 +8,142 @@ installWorker::installWorker(MainWindow *parent) {
 installWorker::~installWorker() {
 }
 
-void installWorker::process() {
+void installWorker::process(bool useOfflineMethod) {
     p = new QProcess(this);
-    //p->setProcessChannelMode(QProcess::MergedChannels);
     connect(p, SIGNAL(finished(int)), this, SLOT(lastProcessFinished(int)));
     connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(outputAvaliable()));
     connect(p, SIGNAL(readyReadStandardError()), this, SLOT(errorAvaliable()));
-
-    /*standardOutput.append("[theos_installer] Executing command umount /mnt\n");
-    emit output(standardOutput);
-
-    p->start("umount", QStringList() << "/mnt");
-    p->waitForFinished(-1);
-
-    if (parentWindow->formatPartition) {
-        lastProcessDone = false;
-        emit message("Formatting " + parentWindow->partition + "...");
-
-        standardOutput.append("[theos_installer] Executing command mkfs -t ext4 -F -F " + parentWindow->partition);
-        p->start("mkfs -t ext4 -F -F " + parentWindow->partition);
-        if (!p->waitForStarted()) {
-            standardOutput.append("[theos_installer] Error occurred executing command!\n");
-        }
-
-        p->waitForFinished(-1);
-    }
-
-    emit message("Mounting " + parentWindow->partition + "...");
-    standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt\n");
-    emit output(standardOutput);
-    p->start("mount " + parentWindow->partition + " /mnt");
-    p->waitForFinished(-1);
-
-
-    if (QDir("/sys/firmware/efi").exists()) {
-        standardOutput.append("This system is EFI, attempting to mount ESP onto /boot\n");
+    if (useOfflineMethod) {
+        emit message("Copying files. This stage can take a while.");
+        standardOutput.append("[theos_installer] Copying Files.");
         emit output(standardOutput);
 
-        QProcess* lsblk = new QProcess();
-        lsblk->start("lsblk -r --output NAME,PARTTYPE");
-        lsblk->waitForStarted(-1);
-        lsblk->waitForFinished(-1);
+        p->start("cp -ax / /mnt");
+        p->waitForFinished(-1);
 
-        QString lsblkOutput(lsblk->readAllStandardOutput());
+        emit message("Configuring System...");
 
-        for (QString partition : lsblkOutput.split("\n")) {
-            if (partition.split(" ").count() != 1) {
-                if (partition.split(" ").at(1).contains("C12A7328-F81F-11D2-BA4B-00A0C93EC93B", Qt::CaseInsensitive)) {
-                    QDir("/mnt").mkdir("boot");
+        QProcess* uname = new QProcess();
+        uname->start("umane -m");
+        uname->waitForFinished();
 
-                    emit message("Mounting " + partition.split(" ").at(0) + "...");
-                    standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt/boot\n");
-                    emit output(standardOutput);
+        QString unameOutput(uname->readAll());
+        uname->deleteLater();
 
+        //p->start("cp -vaT /run/archiso/bootmnt/arch/boot/" + unameOutput + "/vmlinuz /mnt/boot/vmlinuz-linux");
+        QFile("/run/archiso/bootmnt/arch/boot/" + unameOutput + "/vmlinuz").copy("/mnt/boot/vmlinuz-linux");
+        p->waitForFinished(-1);
 
-                    p->start("mount /dev/" + partition.split(" ").at(0) + " /mnt/boot");
-                    p->waitForFinished(-1);
-                    break;
-                }
+        QProcess *fstab = new QProcess(this);
+        fstab->start("genfstab -p /mnt");
+        fstab->waitForFinished();
+        QFile fstabFile("/mnt/etc/fstab");
+        fstabFile.open(QFile::WriteOnly);
+        fstabFile.write(fstab->readAllStandardOutput());
+        fstabFile.close();
+
+        p->start("sed -i 's/Storage=volatile/#Storage=auto/' /mnt/etc/systemd/journald.conf");
+        p->waitForFinished(-1);
+
+        QFile("/mnt/etc/udev/rules.d/81-dhcpcd.rules").remove();
+        p->start("systemctl disable pacman-init.service choose-mirror.service");
+        p->waitForFinished(-1);
+        QFile("/mnt/etc/systemd/system/choose-mirror.service").remove();
+        QFile("/mnt/etc/systemd/system/pacman-init.service").remove();
+        QFile("/mnt/etc/systemd/system/etc-pacman.d-gnupg.mount").remove();
+        QFile("/mnt/etc/systemd/system/getty@tty1.service.d/autologin.conf").remove();
+        QFile("/mnt/root/.automated_script.sh").remove();
+        QFile("/mnt/root/.zlogin").remove();
+        QFile("/mnt/etc/mkinitcpio-archiso.conf").remove();
+        QFile("/mnt/etc/initcpio").remove();
+        p->start("arch-chroot /mnt pacman -Rs --noconfirm theos-installer theos-startlivecd");
+        p->waitForFinished(-1);
+    } else {
+        //p->setProcessChannelMode(QProcess::MergedChannels);
+
+        /*standardOutput.append("[theos_installer] Executing command umount /mnt\n");
+        emit output(standardOutput);
+
+        p->start("umount", QStringList() << "/mnt");
+        p->waitForFinished(-1);
+
+        if (parentWindow->formatPartition) {
+            lastProcessDone = false;
+            emit message("Formatting " + parentWindow->partition + "...");
+
+            standardOutput.append("[theos_installer] Executing command mkfs -t ext4 -F -F " + parentWindow->partition);
+            p->start("mkfs -t ext4 -F -F " + parentWindow->partition);
+            if (!p->waitForStarted()) {
+                standardOutput.append("[theos_installer] Error occurred executing command!\n");
             }
+
+            p->waitForFinished(-1);
         }
 
+        emit message("Mounting " + parentWindow->partition + "...");
+        standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt\n");
+        emit output(standardOutput);
+        p->start("mount " + parentWindow->partition + " /mnt");
+        p->waitForFinished(-1);
 
-    }*/
 
-    emit message("Downloading and copying new files...");
-    standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel linux-headers\n");
-    emit output(standardOutput);
+        if (QDir("/sys/firmware/efi").exists()) {
+            standardOutput.append("This system is EFI, attempting to mount ESP onto /boot\n");
+            emit output(standardOutput);
 
-    p->start("pacstrap /mnt base base-devel linux-headers");
-    p->waitForFinished(-1);
-    if (p->exitCode() != 0) {
-        emit message("An error occurred. Inspect the output to see what happened.");
-        emit failed();
-        return;
+            QProcess* lsblk = new QProcess();
+            lsblk->start("lsblk -r --output NAME,PARTTYPE");
+            lsblk->waitForStarted(-1);
+            lsblk->waitForFinished(-1);
+
+            QString lsblkOutput(lsblk->readAllStandardOutput());
+
+            for (QString partition : lsblkOutput.split("\n")) {
+                if (partition.split(" ").count() != 1) {
+                    if (partition.split(" ").at(1).contains("C12A7328-F81F-11D2-BA4B-00A0C93EC93B", Qt::CaseInsensitive)) {
+                        QDir("/mnt").mkdir("boot");
+
+                        emit message("Mounting " + partition.split(" ").at(0) + "...");
+                        standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt/boot\n");
+                        emit output(standardOutput);
+
+
+                        p->start("mount /dev/" + partition.split(" ").at(0) + " /mnt/boot");
+                        p->waitForFinished(-1);
+                        break;
+                    }
+                }
+            }
+
+
+        }*/
+
+        emit message("Downloading and copying new files...");
+        standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel linux-headers\n");
+        emit output(standardOutput);
+
+        p->start("pacstrap /mnt base base-devel linux-headers");
+        p->waitForFinished(-1);
+        if (p->exitCode() != 0) {
+            emit message("An error occurred. Inspect the output to see what happened.");
+            emit failed();
+            return;
+        }
+
+        emit message("Configuring system...");
+        standardOutput.append("[theos_installer] Generating fstab...\n");
+        emit output(standardOutput);
+        QProcess *fstab = new QProcess(this);
+        fstab->start("genfstab -p /mnt");
+        fstab->waitForFinished();
+
+        QFile fstabFile("/mnt/etc/fstab");
+        fstabFile.open(QFile::WriteOnly);
+        fstabFile.write(fstab->readAllStandardOutput());
+        fstabFile.close();
     }
 
-    emit message("Configuring system...");
-    standardOutput.append("[theos_installer] Generating fstab...\n");
-    emit output(standardOutput);
-    QProcess *fstab = new QProcess(this);
-    fstab->start("genfstab -p /mnt");
-    fstab->waitForFinished();
 
-    QFile fstabFile("/mnt/etc/fstab");
-    fstabFile.open(QFile::WriteOnly);
-    fstabFile.write(fstab->readAllStandardOutput());
-    fstabFile.close();
 
     standardOutput.append("[theos_installer] Setting hostname...\n");
 
@@ -184,19 +233,21 @@ void installWorker::process() {
     grubConfig.write(grubConfiguration.toUtf8());
     grubConfig.close();
 
-    emit message("Downloading and installing new files...");
-    standardOutput.append("[theos_installer] Installing additional packages...\n");
-    emit output(standardOutput);
+    if (!useOfflineMethod) {
+        emit message("Downloading and installing new files...");
+        standardOutput.append("[theos_installer] Installing additional packages...\n");
+        emit output(standardOutput);
 
-    p->start(QString("pacstrap /mnt xf86-video-vesa xf86-video-intel xf86-video-nouveau xf86-video-vmware kde-cli-tools kdesu")
-             .append(" virtualbox-guest-utils xorg-server xorg-xinit xf86-input-synaptics lightdm breeze breeze-gtk breeze-icons")
-             .append(" breeze-kde4 networkmanager gtk3 breeze-gtk chromium kinfocenter partitionmanager ntfs-3g")
-             .append(" hfsprogs kate bluez bluedevil libreoffice-fresh hunspell hunspell-en kdegraphics-okular")
-             .append(" ksuperkey kscreen user-manager kdeconnect gstreamer0.10 gstreamer0.10-bad gstreamer0.10-plugins")
-             .append(" gstreamer0.10-base gstreamer0.10-base-plugins gstreamer0.10-ffmpeg gstreamer0.10-good")
-             .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")
-             .append(" gst-plugins-ugly kmail korganizer cups ark kcalc gwenview alsa-utils pulseaudio pulseaudio-alsa festival festival-english"));
-    p->waitForFinished(-1);
+        p->start(QString("pacstrap /mnt xf86-video-vesa xf86-video-intel xf86-video-nouveau xf86-video-vmware kde-cli-tools kdesu")
+                 .append(" virtualbox-guest-utils xorg-server xorg-xinit xf86-input-synaptics lightdm breeze breeze-gtk breeze-icons")
+                 .append(" breeze-kde4 networkmanager gtk3 breeze-gtk chromium kinfocenter partitionmanager ntfs-3g")
+                 .append(" hfsprogs kate bluez bluedevil libreoffice-fresh hunspell hunspell-en kdegraphics-okular")
+                 .append(" ksuperkey kscreen user-manager kdeconnect gstreamer0.10 gstreamer0.10-bad gstreamer0.10-plugins")
+                 .append(" gstreamer0.10-base gstreamer0.10-base-plugins gstreamer0.10-ffmpeg gstreamer0.10-good")
+                 .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")
+                 .append(" gst-plugins-ugly kmail korganizer cups ark kcalc gwenview alsa-utils pulseaudio pulseaudio-alsa festival festival-english"));
+        p->waitForFinished(-1);
+    }
 
     QDir localPackagesDir("/root/.packages/");
     QDirIterator *packageIterator = new QDirIterator(localPackagesDir);

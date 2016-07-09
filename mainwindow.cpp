@@ -160,6 +160,7 @@ void MainWindow::on_forwardButton_clicked()
         connect(w, SIGNAL(message(QString)), this, SLOT(installMessage(QString)));
         connect(w, SIGNAL(output(QString)), this, SLOT(installOutput(QString)));
         connect(w, SIGNAL(finished()), this, SLOT(install_complete()));
+        connect(w, SIGNAL(failed()), this, SLOT(install_error()));
         installThread->start();
 
         ui->forwardButton->setText("Next");
@@ -526,8 +527,9 @@ void MainWindow::on_pushButton_2_clicked()
     QFile mirrorlist("/etc/pacman.d/mirrorlist");
     mirrorlist.open(QFile::ReadOnly);
     QStringList readMirrorlist(QString(mirrorlist.readAll()).split("\n"));
+    QStringList editedMirrorlist;
 
-    /*bool moveNextLineToTop = false;
+    bool moveNextLineToTop = false;
     for (QString line : readMirrorlist) {
         if (moveNextLineToTop) {
             moveNextLineToTop = false;
@@ -538,11 +540,11 @@ void MainWindow::on_pushButton_2_clicked()
         }
     }
 
-    editedMirrorlist.append(readMirrorlist);*/
+    editedMirrorlist.append(readMirrorlist);
 
 
 
-    bool readLine;
+    /*bool readLine;
     for (QString line : readMirrorlist) {
         if (readLine) {
             if (line == "") {
@@ -557,12 +559,9 @@ void MainWindow::on_pushButton_2_clicked()
                 readLine = true;
             }
         }
-    }
+    }*/
 
-    QString finalMirrorList("");
-    for (QString line : readMirrorlist) {
-        finalMirrorList.append(line + "\n");
-    }
+    QString finalMirrorList(editedMirrorlist.join("\n"));
 
     if (finalMirrorList == "") {
         ui->modifiedMirrorList->setText("Unfortunately, a mirrorlist couldn't be generated from your country.");
@@ -705,4 +704,9 @@ void MainWindow::on_partition_manualMount_clicked()
     if (QMessageBox::information(this, "Manual Mount", "Mount your drives on /mnt, and click OK when done.", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok) == QMessageBox::Ok) {
         on_forwardButton_clicked();
     }
+}
+
+void MainWindow::install_error() {
+    QMessageBox::critical(this, "Error", "An unexpected error occurred while trying to install theOS.\n\ntheOS Setup will now exit.", QMessageBox::Ok, QMessageBox::Ok);
+    QApplication::exit(1);
 }

@@ -129,14 +129,21 @@ DriveInfo::OperationError DriveInfo::applyToDrive(QString drive) {
         int i = 1;
         for (QVariantList partition : partitions) {
             PartitionFormat format = partition.at(1).value<PartitionFormat>();
+            QProcess* formatProc = new QProcess();
             switch (format) {
             case ext4:
-                QProcess::execute("mkfs.ext4 /dev/" + drive + QString::number(i) + " -F");
+                formatProc->start("mkfs.ext4 /dev/" + drive + QString::number(i) + " -F");
+                formatProc->start("e2label /dev/" + drive + QString::number(i) + " \"" + partition.at(2).toString() + "\"");
                 break;
             case swap:
-                QProcess::execute("mkswap /dev/" + drive + QString::number(i));
+                formatProc->start("mkswap /dev/" + drive + QString::number(i));
                 break;
             }
+
+            while (formatProc->state() == QProcess::Running) {
+                QApplication::processEvents();
+            }
+
             i++;
         }
 
