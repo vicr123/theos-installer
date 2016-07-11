@@ -43,7 +43,7 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
 
     driveInfo = new DriveInfo(driveSpace, DriveInfo::mbr);
 
-    if (driveInfo->addPartition(driveSpace - ramSize, DriveInfo::ext4, "theOS") == DriveInfo::driveExtendsPastSize) {
+    if (driveInfo->addPartition(driveSpace - ramSize, DriveInfo::ext4, "theOS", "/mnt") == DriveInfo::driveExtendsPastSize) {
         showError("There isn't enough space on /dev/" + drive + " to install theOS.");
         return;
     }
@@ -52,13 +52,14 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
         return;
     }
 
-    PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", ui->driveLayout);
-    PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", ui->driveLayout);
+    PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", "/mnt", ui->driveLayout);
+    PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", "", ui->driveLayout);
 
 }
 
 EraseDriveDialog::~EraseDriveDialog()
 {
+    delete driveInfo;
     delete ui;
 }
 
@@ -86,10 +87,8 @@ void EraseDriveDialog::on_pushButton_2_clicked()
 void EraseDriveDialog::on_pushButton_clicked()
 {
 
-    DriveInfo::OperationError error = driveInfo->applyToDrive(this->drive);
+    DriveInfo::OperationError error = driveInfo->applyToDriveErase(this->drive);
     if (error == DriveInfo::success) {
-        QProcess::execute("mount /dev/" + this->drive + "1 /mnt");
-        QProcess::execute("swapon /dev/" + this->drive + "2");
         this->accept();
     } else {
         QMessageBox::critical(this, "Couldn't change partitions!", "We couldn't apply your partition changes.");

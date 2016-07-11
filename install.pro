@@ -6,7 +6,7 @@
 
 QT       += core gui network dbus
 CONFIG   += c++11
-LIBS     += -lparted
+LIBS     += -lparted -lparted-fs-resize
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

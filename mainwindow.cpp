@@ -3,11 +3,11 @@
 
 QString calculateSize(quint64 size) {
     QString ret;
-    if (size > 1073741824) {
+    if (size >= 1073741824) {
         ret = QString::number(((float) size / 1024 / 1024 / 1024), 'f', 2).append(" GiB");
-    } else if (size > 1048576) {
+    } else if (size >= 1048576) {
         ret = QString::number(((float) size / 1024 / 1024), 'f', 2).append(" MiB");
-    } else if (size > 1024) {
+    } else if (size >= 1024) {
         ret = QString::number(((float) size / 1024), 'f', 2).append(" KiB");
     } else {
         ret = QString::number((float) size, 'f', 2).append(" B");
@@ -709,4 +709,12 @@ void MainWindow::on_partition_manualMount_clicked()
 void MainWindow::install_error() {
     QMessageBox::critical(this, "Error", "An unexpected error occurred while trying to install theOS.\n\ntheOS Setup will now exit.", QMessageBox::Ok, QMessageBox::Ok);
     QApplication::exit(1);
+}
+
+void MainWindow::on_partition_somethingElse_clicked()
+{
+    PartitionWindow* dialog = new PartitionWindow(ui->driveBox->currentData().toString(), this);
+    if (dialog->exec() == QDialog::Accepted) {
+        on_forwardButton_clicked();
+    }
 }

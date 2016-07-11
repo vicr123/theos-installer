@@ -259,7 +259,7 @@ void installWorker::process(bool useOfflineMethod) {
             standardOutput.append("[theos_installer] Error copying " + packageToInstall + " to " + installLocation);
             emit output(standardOutput);
         }
-        p->start("arch-chroot /mnt pacman -U --noconfirm " + installLocation.remove(0, 4));
+        p->start("arch-chroot /mnt pacman -U --noconfirm 4" + installLocation.remove(0, 4));
         p->waitForFinished(-1);
     }
 

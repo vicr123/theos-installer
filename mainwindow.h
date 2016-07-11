@@ -17,6 +17,7 @@
 #include "internetconnection.h"
 #include "worker.h"
 #include "erasedrivedialog.h"
+#include "partitionwindow.h"
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
@@ -110,6 +111,8 @@ private slots:
     void on_partition_eraseDrive_clicked();
 
     void on_partition_manualMount_clicked();
+
+    void on_partition_somethingElse_clicked();
 
 private:
     stageType stage = Welcome;
