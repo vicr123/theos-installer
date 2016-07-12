@@ -54,6 +54,7 @@ public:
 
     QString partition;
     bool formatPartition = false;
+    QString drive;
     QString fullname;
     QString loginname;
     QString password;

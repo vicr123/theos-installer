@@ -129,6 +129,10 @@
       <bool>true</bool>
      </property>
     </widget>
+    <zorder>label</zorder>
+    <zorder>label_2</zorder>
+    <zorder>label_9</zorder>
+    <zorder>ConfirmFrame</zorder>
    </widget>
    <widget class="QPushButton" name="backButton">
     <property name="geometry">
@@ -283,8 +287,8 @@
     <widget class="QPushButton" name="recheck">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>200</y>
+       <x>360</x>
+       <y>230</y>
        <width>80</width>
        <height>31</height>
       </rect>
@@ -300,14 +304,17 @@
     <widget class="QPushButton" name="connectInternet">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>140</y>
-       <width>161</width>
+       <x>40</x>
+       <y>170</y>
+       <width>181</width>
        <height>31</height>
       </rect>
      </property>
      <property name="text">
       <string>Connect to the Internet</string>
+     </property>
+     <property name="icon">
+      <iconset theme="network-connect"/>
      </property>
     </widget>
     <widget class="QLabel" name="label_31">
@@ -324,22 +331,6 @@
      </property>
      <property name="text">
       <string>We'll be able to sort this out in the next screen.</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_32">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>170</y>
-       <width>341</width>
-       <height>18</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>To install theOS, we need to download about 1 GB.</string>
      </property>
     </widget>
    </widget>
@@ -409,7 +400,7 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>-125</y>
+          <y>0</y>
           <width>409</width>
           <height>274</height>
          </rect>
@@ -1539,6 +1530,7 @@
      </property>
     </widget>
    </widget>
+   <zorder>ConfirmFrame</zorder>
    <zorder>InstallingFrame</zorder>
    <zorder>quitButton</zorder>
    <zorder>forwardButton</zorder>
@@ -1547,7 +1539,6 @@
    <zorder>ReadyToInstallFrame</zorder>
    <zorder>CompleteFrame</zorder>
    <zorder>waitingFrame</zorder>
-   <zorder>ConfirmFrame</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
    <zorder>slideshow</zorder>

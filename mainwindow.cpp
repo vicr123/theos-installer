@@ -122,6 +122,7 @@ void MainWindow::on_forwardButton_clicked()
                 }
             }
         }*/
+        this->drive = "/dev/" + ui->driveBox->currentData().toString();
     } else if (stage == Mirrorlist) {
         if (ui->radioButton->isChecked()) {
             if (!dryrun) {
@@ -467,18 +468,18 @@ void MainWindow::on_environment_check_done(int returnVal) {
     ui->backButton->setEnabled(true);
     ui->recheck->setEnabled(true);
     if (returnVal == 0) {
-        ui->InternetLabel->setPixmap(QIcon::fromTheme("dialog-ok").pixmap(22));
-        ui->forwardButton->setEnabled(true);
+        ui->InternetLabel->setPixmap(QIcon::fromTheme("dialog-ok").pixmap(16, 16));
         ui->connectInternet->setVisible(false);
     } else {
-        ui->InternetLabel->setPixmap(QIcon::fromTheme("dialog-cancel").pixmap(22));
-        ui->forwardButton->setEnabled(false);
+        ui->InternetLabel->setPixmap(QIcon::fromTheme("dialog-cancel").pixmap(16, 16));
+        //ui->forwardButton->setEnabled(false);
         ui->connectInternet->setVisible(true);
     }
 
     //if (progressBar) {
         ui->progressBar->setVisible(false);
     //}
+    ui->forwardButton->setEnabled(true);
 }
 
 void MainWindow::on_recheck_2_clicked()

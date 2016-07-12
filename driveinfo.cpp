@@ -332,7 +332,12 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
         } else if (params.first().toString() == "del") {
             qDebug() << "Now removing a partition.";
             PedPartition* partition = ped_disk_get_partition(disk, params.at(1).toInt() - 1);
-            qDebug() << "Returns " << ped_disk_delete_partition(disk, partition);
+            if (partition == NULL) {
+                qDebug() << "ERROR! ped_disk_get_partition returned NULL.";
+                return unknown;
+            } else {
+                qDebug() << "Returns " << ped_disk_delete_partition(disk, partition);
+            }
         } else if (params.first().toString() == "size") {
             qDebug() << "Now resizing a partition.";
             //ped_disk_get_partition(disk, params.at(1).toInt());
@@ -369,6 +374,8 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
                     break;
                 case DriveInfo::swap:
                     operationProcess->start("mkswap /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
+                    operationProcess->waitForFinished(-1);
+                    operationProcess->start("swaplabel -L \"" + label + "\" /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
                     operationProcess->waitForFinished(-1);
                     break;
                 case DriveInfo::ntfs:
@@ -571,7 +578,6 @@ DriveInfo* DriveInfo::loadDrive(QString drive) {
                 partitionType = DriveInfo::ext4;
             } else if (fs == ped_file_system_type_get("linuxswap")) {
                 partitionType = DriveInfo::swap;
-                label = "Swap";
             } else if (fs == ped_file_system_type_get("ntfs")) {
                 partitionType = DriveInfo::ntfs;
             } else if (fs == ped_file_system_type_get("hfs+")) {

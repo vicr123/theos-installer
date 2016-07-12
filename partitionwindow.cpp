@@ -48,6 +48,7 @@ PartitionWindow::~PartitionWindow()
 
 void PartitionWindow::reloadPartitions() {
     if (driveInfo != 0x0) {
+        int currentIndex = this->currentIndex;
         for (QObject* object : ui->driveLayout->layout()->children()) {
             frames.removeFirst();
             delete object;
@@ -68,9 +69,13 @@ void PartitionWindow::reloadPartitions() {
             PartitionFrame* frame = new PartitionFrame(type, size, label, mountPoint, partitionsFrame);
             frame->setGeometry(partitionSizes.at(i));
             frame->setNumber(i);
+            if (i == currentIndex) {
+                frame->setChecked(true);
+            } else {
+                frame->setChecked(false);
+            }
             connect(frame, SIGNAL(uncheckAll()), this, SLOT(uncheckAllFrames()));
             connect(frame, SIGNAL(nowChecked(int)), this, SLOT(checked(int)));
-            frame->raise();
             frames.append(frame);
         }
         ui->driveLayout->layout()->addWidget(partitionsFrame);
@@ -109,6 +114,7 @@ void PartitionWindow::reloadPartitions() {
                 ui->listWidget->addItem(item);
             }
         }
+        this->currentIndex = currentIndex;
     }
 }
 
@@ -137,8 +143,11 @@ void PartitionWindow::on_pushButton_clicked()
     }
 
     if (QMessageBox::warning(this, "Applying Changes", "We're about to make changes to your disk. Ensure that the operations are correct, then click OK to apply the changes.", QMessageBox::Ok | QMessageBox::Abort, QMessageBox::Ok) == QMessageBox::Ok) {
-        driveInfo->applyOperationList(this->drive);
-        this->accept();
+        if (driveInfo->applyOperationList(this->drive) == DriveInfo::success) {
+            this->accept();
+        } else {
+            QMessageBox::critical(this, "Error", "We couldn't apply your changes. You can try again, or you can use KDE Partition Manager from the Gateway or if you haven't started theShell, you can quit setup and launch it from the Utilities section", QMessageBox::Ok, QMessageBox::Ok);
+        }
     }
 }
 
@@ -155,9 +164,15 @@ void PartitionWindow::checked(int index) {
     if (driveInfo->getPartitionType(index) == DriveInfo::freeSpace) {
         ui->removePartition->setVisible(false);
         ui->newPartition->setVisible(true);
+        ui->mountPoint->setEnabled(false);
+    } else if (driveInfo->getPartitionType(index) == DriveInfo::swap) {
+        ui->removePartition->setVisible(true);
+        ui->newPartition->setVisible(false);
+        ui->mountPoint->setEnabled(false);
     } else {
         ui->removePartition->setVisible(true);
         ui->newPartition->setVisible(false);
+        ui->mountPoint->setEnabled(true);
     }
     ui->mountPoint->setText(driveInfo->getPartitionMountPoint(index));
 }
@@ -221,6 +236,7 @@ void PartitionWindow::on_mountPoint_textEdited(const QString &arg1)
 {
     if (this->currentIndex != -1) {
         driveInfo->setPartitionMountPoint(this->currentIndex, arg1);
+        reloadPartitions();
     }
 }
 
@@ -271,4 +287,13 @@ void PartitionWindow::on_resizePartitionButton_clicked()
     anim->setEasingCurve(QEasingCurve::OutCubic);
     anim->setDuration(500);
     anim->start();
+}
+
+void PartitionWindow::on_newPartitionType_currentTextChanged(const QString &arg1)
+{
+    if (arg1 == "linuxswap") {
+        ui->newPartitionMount->setEnabled(false);
+    } else {
+        ui->newPartitionMount->setEnabled(true);
+    }
 }

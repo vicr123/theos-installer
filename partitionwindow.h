@@ -48,6 +48,8 @@ private slots:
 
     void on_resizePartitionButton_clicked();
 
+    void on_newPartitionType_currentTextChanged(const QString &arg1);
+
 private:
     QString drive;
     DriveInfo* driveInfo;

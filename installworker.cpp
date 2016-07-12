@@ -13,6 +13,7 @@ void installWorker::process(bool useOfflineMethod) {
     connect(p, SIGNAL(finished(int)), this, SLOT(lastProcessFinished(int)));
     connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(outputAvaliable()));
     connect(p, SIGNAL(readyReadStandardError()), this, SLOT(errorAvaliable()));
+    p->setProcessChannelMode(QProcess::MergedChannels);
     if (useOfflineMethod) {
         emit message("Copying files. This stage can take a while.");
         standardOutput.append("[theos_installer] Copying Files.");
@@ -24,13 +25,13 @@ void installWorker::process(bool useOfflineMethod) {
         emit message("Configuring System...");
 
         QProcess* uname = new QProcess();
-        uname->start("umane -m");
+        uname->start("uname -m");
         uname->waitForFinished();
 
         QString unameOutput(uname->readAll());
+        unameOutput.remove("\n");
         uname->deleteLater();
 
-        //p->start("cp -vaT /run/archiso/bootmnt/arch/boot/" + unameOutput + "/vmlinuz /mnt/boot/vmlinuz-linux");
         QFile("/run/archiso/bootmnt/arch/boot/" + unameOutput + "/vmlinuz").copy("/mnt/boot/vmlinuz-linux");
         p->waitForFinished(-1);
 
@@ -42,8 +43,30 @@ void installWorker::process(bool useOfflineMethod) {
         fstabFile.write(fstab->readAllStandardOutput());
         fstabFile.close();
 
-        p->start("sed -i 's/Storage=volatile/#Storage=auto/' /mnt/etc/systemd/journald.conf");
-        p->waitForFinished(-1);
+        QFile journalFile("/mnt/etc/systemd/journald.conf");
+        journalFile.open(QFile::ReadOnly);
+        QString journalContents(journalFile.readAll());
+        journalContents.replace("Storage=volatile", "Storage=auto");
+        journalFile.close();
+        journalFile.open(QFile::WriteOnly);
+        journalFile.write(journalContents.toUtf8());
+        journalFile.close();
+
+        QFile pacmanFile("/mnt/etc/pacman.conf");
+        pacmanFile.open(QFile::ReadOnly);
+        QString pacmanContents(pacmanFile.readAll());
+        QStringList rewritePacman;
+        for (QString line : pacmanContents.split("\n")) {
+            if (line.startsWith("SigLevel")) {
+                line = "SigLevel = Never";
+            }
+            rewritePacman.append(line);
+        }
+        pacmanFile.close();
+        pacmanFile.open(QFile::WriteOnly);
+        QString pacmanBytes = rewritePacman.join("\n");
+        pacmanFile.write(pacmanBytes.toUtf8());
+        pacmanFile.close();
 
         QFile("/mnt/etc/udev/rules.d/81-dhcpcd.rules").remove();
         p->start("systemctl disable pacman-init.service choose-mirror.service");
@@ -56,68 +79,9 @@ void installWorker::process(bool useOfflineMethod) {
         QFile("/mnt/root/.zlogin").remove();
         QFile("/mnt/etc/mkinitcpio-archiso.conf").remove();
         QFile("/mnt/etc/initcpio").remove();
-        p->start("arch-chroot /mnt pacman -Rs --noconfirm theos-installer theos-startlivecd");
+        p->start("arch-chroot /mnt pacman -Rs --noconfirm theosinstaller theos-startlivecd");
         p->waitForFinished(-1);
     } else {
-        //p->setProcessChannelMode(QProcess::MergedChannels);
-
-        /*standardOutput.append("[theos_installer] Executing command umount /mnt\n");
-        emit output(standardOutput);
-
-        p->start("umount", QStringList() << "/mnt");
-        p->waitForFinished(-1);
-
-        if (parentWindow->formatPartition) {
-            lastProcessDone = false;
-            emit message("Formatting " + parentWindow->partition + "...");
-
-            standardOutput.append("[theos_installer] Executing command mkfs -t ext4 -F -F " + parentWindow->partition);
-            p->start("mkfs -t ext4 -F -F " + parentWindow->partition);
-            if (!p->waitForStarted()) {
-                standardOutput.append("[theos_installer] Error occurred executing command!\n");
-            }
-
-            p->waitForFinished(-1);
-        }
-
-        emit message("Mounting " + parentWindow->partition + "...");
-        standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt\n");
-        emit output(standardOutput);
-        p->start("mount " + parentWindow->partition + " /mnt");
-        p->waitForFinished(-1);
-
-
-        if (QDir("/sys/firmware/efi").exists()) {
-            standardOutput.append("This system is EFI, attempting to mount ESP onto /boot\n");
-            emit output(standardOutput);
-
-            QProcess* lsblk = new QProcess();
-            lsblk->start("lsblk -r --output NAME,PARTTYPE");
-            lsblk->waitForStarted(-1);
-            lsblk->waitForFinished(-1);
-
-            QString lsblkOutput(lsblk->readAllStandardOutput());
-
-            for (QString partition : lsblkOutput.split("\n")) {
-                if (partition.split(" ").count() != 1) {
-                    if (partition.split(" ").at(1).contains("C12A7328-F81F-11D2-BA4B-00A0C93EC93B", Qt::CaseInsensitive)) {
-                        QDir("/mnt").mkdir("boot");
-
-                        emit message("Mounting " + partition.split(" ").at(0) + "...");
-                        standardOutput.append("[theos_installer] Executing command mount " + parentWindow->partition + " /mnt/boot\n");
-                        emit output(standardOutput);
-
-
-                        p->start("mount /dev/" + partition.split(" ").at(0) + " /mnt/boot");
-                        p->waitForFinished(-1);
-                        break;
-                    }
-                }
-            }
-
-
-        }*/
-
         emit message("Downloading and copying new files...");
         standardOutput.append("[theos_installer] Executing command pacstrap /mnt base base-devel linux-headers\n");
         emit output(standardOutput);
@@ -142,8 +106,6 @@ void installWorker::process(bool useOfflineMethod) {
         fstabFile.write(fstab->readAllStandardOutput());
         fstabFile.close();
     }
-
-
 
     standardOutput.append("[theos_installer] Setting hostname...\n");
 
@@ -172,15 +134,15 @@ void installWorker::process(bool useOfflineMethod) {
 
     emit message("Downloading and installing bootloader...");
 
+    if (!useOfflineMethod) {
+        standardOutput.append("[theos_installer] Executing command pacstrap /mnt os-prober grub\n");
+        emit output(standardOutput);
 
-    standardOutput.append("[theos_installer] Executing command pacstrap /mnt os-prober grub\n");
-    emit output(standardOutput);
+        p->start("pacstrap /mnt os-prober efibootmgr grub");
+        p->waitForFinished(-1);
+    }
 
-    p->start("pacstrap /mnt os-prober efibootmgr grub");
-    p->waitForFinished(-1);
-
-    QString disk = parentWindow->partition;
-    disk.chop(1);
+    QString disk = parentWindow->drive;
 
     if (QDir("/sys/firmware/efi").exists()) {
         standardOutput.append("[theos_installer] Executing command arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=grub\n");
@@ -201,10 +163,14 @@ void installWorker::process(bool useOfflineMethod) {
 
     QStringList grubDefaultsArray = grubDefaults.split("\n");
     for (QString line : grubDefaultsArray) {
-        if (line.startsWith("GRUB_CMDLINE_LINUX_DEFAULT")) {
+        /*if (line.startsWith("GRUB_CMDLINE_LINUX_DEFAULT")) {
             int index = grubDefaultsArray.indexOf(line);
             grubDefaultsArray.removeAt(index);
             grubDefaultsArray.insert(index, "GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\"");
+        } else */ if (line.startsWith("#GRUB_DISABLE_LINUX_UUID")) {
+            int index = grubDefaultsArray.indexOf(line);
+            grubDefaultsArray.removeAt(index);
+            grubDefaultsArray.insert(index, "GRUB_DISABLE_LINUX_UUID=true");
         }
     }
 
@@ -212,8 +178,6 @@ void installWorker::process(bool useOfflineMethod) {
     for (QString line : grubDefaultsArray) {
         grubDefaults.append(line + "\n");
     }
-    p->waitForFinished(-1);
-
     grubDefault.open(QFile::WriteOnly);
     grubDefault.write(grubDefaults.toUtf8());
     grubDefault.close();
@@ -247,20 +211,20 @@ void installWorker::process(bool useOfflineMethod) {
                  .append(" gstreamer0.10-good-plugins gstreamer0.10-ugly gstreamer0.10-ugly-plugins gst-plugins-good")
                  .append(" gst-plugins-ugly kmail korganizer cups ark kcalc gwenview alsa-utils pulseaudio pulseaudio-alsa festival festival-english"));
         p->waitForFinished(-1);
-    }
 
-    QDir localPackagesDir("/root/.packages/");
-    QDirIterator *packageIterator = new QDirIterator(localPackagesDir);
-    while (packageIterator->hasNext()) {
-        QString packageName = packageIterator->next();
-        QString packageToInstall = packageName;
-        QString installLocation = "/mnt/var/cache/pacman/pkg/" + packageName.remove("/root/.packages/");
-        if (!QFile::copy(packageToInstall, installLocation)) {
-            standardOutput.append("[theos_installer] Error copying " + packageToInstall + " to " + installLocation);
-            emit output(standardOutput);
+        QDir localPackagesDir("/root/.packages/");
+        QDirIterator *packageIterator = new QDirIterator(localPackagesDir);
+        while (packageIterator->hasNext()) {
+            QString packageName = packageIterator->next();
+            QString packageToInstall = packageName;
+            QString installLocation = "/mnt/var/cache/pacman/pkg/" + packageName.remove("/root/.packages/");
+            if (!QFile::copy(packageToInstall, installLocation)) {
+                standardOutput.append("[theos_installer] Error copying " + packageToInstall + " to " + installLocation);
+                emit output(standardOutput);
+            }
+            p->start("arch-chroot /mnt pacman -U --noconfirm 4" + installLocation.remove(0, 4));
+            p->waitForFinished(-1);
         }
-        p->start("arch-chroot /mnt pacman -U --noconfirm 4" + installLocation.remove(0, 4));
-        p->waitForFinished(-1);
     }
 
     emit message("Configuring System...");
@@ -302,11 +266,11 @@ void installWorker::process(bool useOfflineMethod) {
     p->waitForFinished(-1);
 
     QFile sudoersConfig("/mnt/etc/sudoers");
-    sudoersConfig.open(QFile::ReadWrite);
+    sudoersConfig.open(QFile::ReadOnly);
     QString sudoersConfiguration(sudoersConfig.readAll());
     sudoersConfig.close();
     sudoersConfiguration = sudoersConfiguration.replace("# %wheel ALL=(ALL) ALL", "%wheel ALL=(ALL) ALL");
-    sudoersConfig.open(QFile::ReadWrite);
+    sudoersConfig.open(QFile::WriteOnly);
     sudoersConfig.write(sudoersConfiguration.toUtf8());
     sudoersConfig.close();
 
@@ -356,7 +320,7 @@ void installWorker::process(bool useOfflineMethod) {
         if (line.startsWith("HOOKS")) {
             int index = initArray.indexOf(line);
             initArray.removeAt(index);
-            initArray.insert(index, "HOOKS=\"base udev plymouth autodetect modconf block filesystems keyboard fsck\"");
+            initArray.insert(index, "HOOKS=\"base udev autodetect modconf block filesystems keyboard fsck\"");
         } else if (line.startsWith("MODULES")) {
             int index = initArray.indexOf(line);
             initArray.removeAt(index);
@@ -375,8 +339,8 @@ void installWorker::process(bool useOfflineMethod) {
 
     QFile("/etc/os-release").copy("/mnt/etc/os-release");
 
-    p->start("arch-chroot /mnt plymouth-set-default-theme theos --rebuild-initrd" );
-    p->waitForFinished(-1);
+    //p->start("arch-chroot /mnt plymouth-set-default-theme theos --rebuild-initrd" );
+    //p->waitForFinished(-1);
 
     p->start("cp -r /root /mnt/home/" + parentWindow->loginname);
     p->waitForFinished(-1);
