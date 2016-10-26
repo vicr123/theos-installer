@@ -1,5 +1,7 @@
 #include "driveinfo.h"
 
+extern QString calculateSize(quint64 size);
+
 DriveInfo::DriveInfo(qulonglong size, DriveFormat type, QObject *parent) : QObject(parent)
 {
     this->size = size;
@@ -209,6 +211,9 @@ DriveInfo::OperationError DriveInfo::applyToDriveErase(QString drive) {
             pedPartition = ped_partition_new(disk, PED_PARTITION_NORMAL, ped_file_system_type_get("ext4"), startSector, endSector);
         } else if (format == swap) {
             pedPartition = ped_partition_new(disk, PED_PARTITION_NORMAL, ped_file_system_type_get("linux-swap"), startSector, endSector);
+        } else if (format == efisys) {
+            pedPartition = ped_partition_new(disk, PED_PARTITION_NORMAL, ped_file_system_type_get("fat32"), startSector, endSector);
+            ped_partition_set_flag(pedPartition, ped_partition_flag_get_by_name("boot"), 1);
         }
         ped_partition_set_name(pedPartition, label.toLocal8Bit()); //Set label on disk
         if (ped_disk_add_partition(disk, pedPartition, ped_constraint_exact(&pedPartition->geom)) == 0) {
@@ -235,11 +240,13 @@ DriveInfo::OperationError DriveInfo::applyToDriveErase(QString drive) {
         qDebug() << "Creating file systems and mounting...";
         qDebug() << "";
 
+        int firstMount = -1;
         int i = 1;
         for (QVariantList partition : partitions) {
             PartitionFormat format = partition.at(1).value<PartitionFormat>();
             QString mountPoint = partition.at(3).toString();
             QProcess* formatProc = new QProcess();
+            formatProc->setProcessChannelMode(QProcess::ForwardedChannels);
             switch (format) {
             case ext4:
                 formatProc->start("mkfs.ext4 /dev/" + drive + QString::number(i) + " -F");
@@ -247,21 +254,63 @@ DriveInfo::OperationError DriveInfo::applyToDriveErase(QString drive) {
                 formatProc->start("e2label /dev/" + drive + QString::number(i) + " \"" + partition.at(2).toString() + "\"");
                 formatProc->waitForFinished(-1);
 
-                if (mountPoint != "") {
-                    formatProc->start("mount /dev/" + drive + QString::number(i) + " " + mountPoint);
-                    formatProc->waitForFinished(-1);
+
+                if (mountPoint == "/") {
+                    firstMount = i;
                 }
                 break;
             case swap:
                 formatProc->start("mkswap /dev/" + drive + QString::number(i));
                 formatProc->waitForFinished(-1);
-                formatProc->start("swapon /dev/" + drive + QString::number(i));
+                break;
+            case DriveInfo::fat32:
+            case DriveInfo::efisys:
+                formatProc->start("mkfs.fat -F 32 /dev/" + drive + QString::number(i));
+                formatProc->waitForFinished(-1);
+                formatProc->start("fatlabel /dev/" + drive + QString::number(i) + " \"" + partition.at(2).toString() + "\"");
                 formatProc->waitForFinished(-1);
                 break;
             }
+            delete formatProc;
 
-            while (formatProc->state() == QProcess::Running) {
-                QApplication::processEvents();
+            i++;
+        }
+
+        if (firstMount != -1) {
+            QProcess* formatProc = new QProcess();
+            formatProc->setProcessChannelMode(QProcess::ForwardedChannels);
+            formatProc->start("mount /dev/" + drive + QString::number(firstMount) + " /mnt/");
+            formatProc->waitForFinished(-1);
+            delete formatProc;
+        }
+
+        i = 1;
+        for (QVariantList partition : partitions) {
+            if (i != firstMount) {
+                PartitionFormat format = partition.at(1).value<PartitionFormat>();
+                QString mountPoint = partition.at(3).toString();
+                QProcess* formatProc = new QProcess();
+                formatProc->setProcessChannelMode(QProcess::ForwardedChannels);
+                switch (format) {
+                case ext4:
+                case fat32:
+                case efisys:
+                    if (mountPoint != "") {
+                        if (mountPoint != "/") {
+                            QDir("/mnt").mkdir(mountPoint.mid(1));
+                        }
+
+                        formatProc->start("mount /dev/" + drive + QString::number(i) + " /mnt" + mountPoint);
+                        formatProc->waitForFinished(-1);
+                    }
+                    break;
+                case swap:
+                    formatProc->start("swapon /dev/" + drive + QString::number(i));
+                    formatProc->waitForFinished(-1);
+                    break;
+                    break;
+                }
+                delete formatProc;
             }
 
             i++;
@@ -274,6 +323,50 @@ DriveInfo::OperationError DriveInfo::applyToDriveErase(QString drive) {
 }
 
 DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
+    DoingPartitioning statusWindow;
+    statusWindow.setModal(true);
+
+    for (QVariantList operation : operations) {
+        if (operation.first().toString() == "del") {
+            statusWindow.addOperation("Delete " + operation.at(2).toString(), QIcon::fromTheme("edit-delete"));
+        } else if (operation.first().toString() == "new") {
+            qulonglong size = operation.at(2).toLongLong();
+            statusWindow.addOperation("Create a partition with size " + QString::number(size), QIcon::fromTheme("list-add"));
+        } else if (operation.first().toString() == "size") {
+            qulonglong newSize = operation.at(2).toLongLong();
+            QString label = operation.at(3).toString();
+            qulonglong currentSize = operation.at(4).toLongLong();
+
+            statusWindow.addOperation("Check file system on " + label, QIcon::fromTheme("go-last"));
+            statusWindow.addOperation("Resize file system on " + label + " from " + calculateSize(currentSize) + " to " + calculateSize(newSize), QIcon::fromTheme("go-last"));
+            statusWindow.addOperation("Resize Partition from " + calculateSize(currentSize) + " to " + calculateSize(newSize), QIcon::fromTheme("go-last"));
+        }
+    }
+
+    for (QVariantList operation : operations) {
+        if (operation.first().toString() == "new") {
+            QString format;
+            switch (operation.at(3).value<DriveInfo::PartitionFormat>()) {
+            case DriveInfo::ext4:
+                format = "ext4";
+                break;
+            case DriveInfo::swap:
+                format = "linuxswap";
+                break;
+            case DriveInfo::ntfs:
+                format = "NTFS";
+                break;
+            case DriveInfo::fat32:
+            case DriveInfo::efisys:
+                format = "FAT32";
+            }
+            qulonglong size = operation.at(2).toLongLong();
+            statusWindow.addOperation("Create a " + format + " file system with size " + QString::number(size), QIcon::fromTheme("list-add"));
+        }
+    }
+
+    statusWindow.show();
+
     qDebug() << "-----------------------------------------";
     qDebug() << "Starting partitioning on /dev/" + drive;
     PedDevice* device = ped_device_get(QString("/dev/" + drive).toLocal8Bit()); //Create device
@@ -289,6 +382,7 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
         if (params.first().toString() == "new") {
             qDebug() << "Now creating a new partition.";
 
+            statusWindow.nextStep();
             PedFileSystemType* fstype;
             switch (params.at(3).value<PartitionFormat>()) {
             case DriveInfo::ext4:
@@ -301,12 +395,13 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
                 fstype = ped_file_system_type_get("ntfs");
                 break;
             case DriveInfo::fat32:
+            case DriveInfo::efisys:
                 fstype = ped_file_system_type_get("fat32");
                 break;
             }
 
             PedSector startSector, endSector;
-            PedPartition* partition = ped_disk_get_partition(disk, params.at(1).toInt() - 1);
+            PedPartition* partition = ped_disk_get_partition(disk, params.at(1).toInt() - 2);
             if (partition == NULL) {
                 startSector = 2048;
             } else {
@@ -327,10 +422,16 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
             }
 
             PedPartition* diskPartition = ped_partition_new(disk, PED_PARTITION_NORMAL, fstype, startSector, endSector);
+
+            if (params.at(3).value<PartitionFormat>() == efisys) {
+                ped_partition_set_flag(diskPartition, ped_partition_flag_get_by_name("boot"), 1);
+            }
+
             ped_disk_add_partition(disk, diskPartition, ped_constraint_exact(&diskPartition->geom));
             newPartitionNumbers.append(diskPartition->num);
         } else if (params.first().toString() == "del") {
             qDebug() << "Now removing a partition.";
+            statusWindow.nextStep();
             PedPartition* partition = ped_disk_get_partition(disk, params.at(1).toInt() - 1);
             if (partition == NULL) {
                 qDebug() << "ERROR! ped_disk_get_partition returned NULL.";
@@ -340,22 +441,98 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
             }
         } else if (params.first().toString() == "size") {
             qDebug() << "Now resizing a partition.";
-            //ped_disk_get_partition(disk, params.at(1).toInt());
+            statusWindow.nextStep();
+            int index = params.at(1).toInt();
+            qulonglong size = params.at(2).toLongLong();
+            PedPartition* partition = ped_disk_get_partition(disk, params.at(1).toInt() - 1);
+            int num = partition->num;
+            ped_device_begin_external_access(device);
+
+            bool didErrorOccur = false;
+
+            QProcess* resizeProcess = new QProcess();
+            resizeProcess->setProcessChannelMode(QProcess::ForwardedChannels);
+            switch (getPartitionType(index)) {
+            case ext4:
+            {
+                resizeProcess->start("e2fsck -f -y /dev/" + drive + QString::number(num));
+                resizeProcess->waitForStarted(-1);
+
+                while (resizeProcess->state() == QProcess::Running) {
+                    QApplication::processEvents();
+                }
+
+                if (resizeProcess->exitCode() != 0) { //Something bad happened. Abort now.
+                    didErrorOccur = true;
+                    break;
+                }
+                statusWindow.nextStep();
+
+                resizeProcess->start("resize2fs /dev/" + drive + QString::number(num) + " " + QString::number(size / 512) + "s");
+                resizeProcess->waitForStarted(-1);
+
+                while (resizeProcess->state() == QProcess::Running) {
+                    QApplication::processEvents();
+                }
+                if (resizeProcess->exitCode() != 0) { //Something bad happened. Abort now.
+                    didErrorOccur = true;
+                }
+            }
+                break;
+            case ntfs:
+            {
+                resizeProcess->start("ntfsresize --no-progress-bar -n -s " + QString::number(size) + " /dev/" + drive + QString::number(num)); //Perform a test run
+                resizeProcess->waitForStarted(-1);
+
+                while (resizeProcess->state() == QProcess::Running) {
+                    QApplication::processEvents();
+                }
+                if (resizeProcess->exitCode() != 0) { //Error occurred. Abort now.
+                    didErrorOccur = true;
+                    break;
+                }
+                statusWindow.nextStep();
+
+                resizeProcess->start("ntfsresize --force --no-progress-bar -s " + QString::number(size) + " /dev/" + drive + QString::number(num)); //Do actual resize
+                resizeProcess->waitForStarted(-1);
+
+                while (resizeProcess->state() == QProcess::Running) {
+                    QApplication::processEvents();
+                }
+                if (resizeProcess->exitCode() != 0) { //Error occurred. Abort now.
+                    didErrorOccur = true;
+                }
+            }
+                break;
+            }
+            statusWindow.nextStep();
+
+            if (didErrorOccur) {
+                return unknown;
+            }
+
+            ped_device_end_external_access(device);
+            PedSector startSector = partition->geom.start;
+            PedSector endSector;
+            endSector = startSector + size / device->sector_size;
+
+            PedGeometry* geometry = ped_geometry_new(device, startSector, endSector - startSector);
+
+            ped_disk_set_partition_geom(disk, partition, ped_constraint_exact(geometry), startSector, endSector);
         }
+        int commit = ped_disk_commit(disk); //Commit changes to disk
     }
 
-    qDebug() << "Committing changes to disk...";
-    int commit = ped_disk_commit(disk); //Commit all the changes
     ped_disk_destroy(disk);
     ped_device_close(device);
     ped_device_destroy(device);
-    commit = 0; //libparted seems to not be working :(
+    //commit = 0; //libparted seems to not be working :(
 
-    if (commit != 0) {
-        qDebug() << "--COULDN'T COMMIT TO DISK--";
-        qDebug() << "-----------------------------------------";
-        return unknown;
-    } else {
+    //if (commit != 0) {
+        //qDebug() << "--COULDN'T COMMIT TO DISK--";
+        //qDebug() << "-----------------------------------------";
+        //return unknown;
+    //} else {
         qDebug() << "";
         qDebug() << "Creating file systems...";
         qDebug() << "";
@@ -363,30 +540,61 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
         int i = 0;
         for (QVariantList params : operations) {
             if (params.first().toString() == "new") {
+                statusWindow.nextStep();
                 QString label = params.at(4).toString();
                 PedFileSystemType* fstype;
                 switch (params.at(3).value<PartitionFormat>()) {
                 case DriveInfo::ext4:
                     operationProcess->start("mkfs.ext4 /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
+
                     operationProcess->start("e2label /dev/" + drive + QString::number(newPartitionNumbers.at(i)) + " \"" + label + "\"");
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     break;
                 case DriveInfo::swap:
                     operationProcess->start("mkswap /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     operationProcess->start("swaplabel -L \"" + label + "\" /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     break;
                 case DriveInfo::ntfs:
                     operationProcess->start("mkfs.ntfs -Q -L " + label + " /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     break;
                 case DriveInfo::fat32:
+                case DriveInfo::efisys:
                     operationProcess->start("mkfs.fat -F 32 /dev/" + drive + QString::number(newPartitionNumbers.at(i)));
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     operationProcess->start("fatlabel /dev/" + drive + QString::number(newPartitionNumbers.at(i)) + " \"" + label + "\"");
-                    operationProcess->waitForFinished(-1);
+                    operationProcess->waitForStarted(-1);
+
+                    while (operationProcess->state() == QProcess::Running) {
+                        QApplication::processEvents();
+                    }
                     break;
                 }
                 i++;
@@ -407,7 +615,11 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
             mntProc->setProcessChannelMode(QProcess::ForwardedChannels);
             switch (format) {
             case swap:
-                mntProc->start("swapon /dev/" + drive + QString::number(i));
+                if (label == "") {
+                    mntProc->start("swapon /dev/" + drive + QString::number(i));
+                } else {
+                    mntProc->start("swapon /dev/disk/by-label/" + label);
+                }
                 mntProc->waitForFinished(-1);
                 break;
             default:
@@ -431,7 +643,7 @@ DriveInfo::OperationError DriveInfo::applyOperationList(QString drive) {
         qDebug() << "Done.";
         qDebug() << "-----------------------------------------";
         return success;
-    }
+    //}
 }
 
 DriveInfo::OperationError DriveInfo::resizePartition(int index, qulonglong newSize) {
@@ -473,7 +685,7 @@ DriveInfo::OperationError DriveInfo::resizePartition(int index, qulonglong newSi
             partitions.replace(index, partitionInformation);
         }
 
-        operations.append(QVariantList() << "size" << index << newSize << label);
+        operations.append(QVariantList() << "size" << index << newSize << label << currentSize);
         qDebug() << operations;
         return success;
     }

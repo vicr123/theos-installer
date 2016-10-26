@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     partitionwindow.cpp \
     erasedrivedialog.cpp \
     driveinfo.cpp \
-    partitionframe.cpp
+    partitionframe.cpp \
+    doingpartitioning.cpp
 
 HEADERS  += mainwindow.h \
     internetconnection.h \
@@ -32,12 +33,14 @@ HEADERS  += mainwindow.h \
     partitionwindow.h \
     erasedrivedialog.h \
     driveinfo.h \
-    partitionframe.h
+    partitionframe.h \
+    doingpartitioning.h
 
 FORMS    += mainwindow.ui \
     internetconnection.ui \
     partitionwindow.ui \
-    erasedrivedialog.ui
+    erasedrivedialog.ui \
+    doingpartitioning.ui
 
 RESOURCES += \
     resources.qrc

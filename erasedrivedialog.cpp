@@ -12,7 +12,6 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
 
     ui->explanationLabel->setText("/dev/" + drive + " will be erased and formatted like the following.");
 
-
     QProcess *lsblk = new QProcess(this);
     lsblk->start("lsblk -rb");
 
@@ -41,19 +40,40 @@ EraseDriveDialog::EraseDriveDialog(QString drive, QWidget *parent) :
         showError("There isn't enough space on /dev/" + drive + " to install theOS.");
     }
 
-    driveInfo = new DriveInfo(driveSpace, DriveInfo::mbr);
 
-    if (driveInfo->addPartition(driveSpace - ramSize, DriveInfo::ext4, "theOS", "/mnt") == DriveInfo::driveExtendsPastSize) {
-        showError("There isn't enough space on /dev/" + drive + " to install theOS.");
-        return;
-    }
-    if (driveInfo->addPartition(-1, DriveInfo::swap) == DriveInfo::driveExtendsPastSize) {
-        showError("There isn't enough space on /dev/" + drive + " to install theOS.");
-        return;
+    if (QDir("/sys/firmware/efi").exists()) { //This is an EFI system.
+        driveInfo = new DriveInfo(driveSpace, DriveInfo::gpt);
+
+        driveInfo->addPartition(536870912, DriveInfo::efisys, "EFI", "/boot");
+
+        if (driveInfo->addPartition(driveSpace - ramSize - 536870912, DriveInfo::ext4, "theOS", "/") == DriveInfo::driveExtendsPastSize) {
+            showError("There isn't enough space on /dev/" + drive + " to install theOS.");
+            return;
+        }
+        if (driveInfo->addPartition(-1, DriveInfo::swap) == DriveInfo::driveExtendsPastSize) {
+            showError("There isn't enough space on /dev/" + drive + " to install theOS.");
+            return;
+        }
+
+        PartitionFrame* efisysPartition = new PartitionFrame(DriveInfo::efisys, driveInfo->getPartitionSize(0), "EFI", "/boot", ui->driveLayout);
+        PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(1), "theOS", "/", ui->driveLayout);
+        PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(2), "Swap", "", ui->driveLayout);
+    } else {
+        driveInfo = new DriveInfo(driveSpace, DriveInfo::mbr);
+
+        if (driveInfo->addPartition(driveSpace - ramSize, DriveInfo::ext4, "theOS", "/") == DriveInfo::driveExtendsPastSize) {
+            showError("There isn't enough space on /dev/" + drive + " to install theOS.");
+            return;
+        }
+        if (driveInfo->addPartition(-1, DriveInfo::swap) == DriveInfo::driveExtendsPastSize) {
+            showError("There isn't enough space on /dev/" + drive + " to install theOS.");
+            return;
+        }
+
+        PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", "/mnt", ui->driveLayout);
+        PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", "", ui->driveLayout);
     }
 
-    PartitionFrame* ext4Partition = new PartitionFrame(DriveInfo::ext4, driveInfo->getPartitionSize(0), "theOS", "/mnt", ui->driveLayout);
-    PartitionFrame* swapPartition = new PartitionFrame(DriveInfo::swap, driveInfo->getPartitionSize(1), "Swap", "", ui->driveLayout);
 
 }
 

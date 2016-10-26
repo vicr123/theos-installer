@@ -29,11 +29,15 @@ int main(int argc, char *argv[])
             w.performNetworkCheck = false;
         } else if (arg == "--dry" || arg == "-d") {
             w.dryrun = true;
+        } else if (arg == "--no-probe-os" || arg == "-o") {
+            w.noProbe = true;
         } else if (arg == "--help" || arg == "-h") {
             qDebug() << "theOS Installer";
             qDebug() << "Usage: theos_installer [OPTIONS]";
             qDebug() << "  -n, --no-network-check       Don't perform network sanity check";
             qDebug() << "  -d, --dry                    Don't edit any files (until we actually install)";
+            qDebug() << "  -o, --no-probe-os            Don't search for other operating systems on disk.";
+
             return 0;
         } else {
             qDebug() << arg + " is an invalid option.";

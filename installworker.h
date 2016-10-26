@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QDirIterator>
+#include <QStorageInfo>
 #include "mainwindow.h"
 
 class installWorker : public QObject
@@ -29,6 +30,7 @@ signals:
     void message(QString message);
     void error(QString err);
     void failed();
+    void progress(qulonglong progress, qulonglong max);
 
 private:
     MainWindow *parentWindow;

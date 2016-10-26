@@ -72,6 +72,7 @@ void PartitionFrame::paintEvent(QPaintEvent *event) {
         textColor = QColor::fromRgb(0, 0, 0);
         break;
     case DriveInfo::fat32:
+    case DriveInfo::efisys:
         if (this->checked) {
             painter.setBrush(QBrush(QColor::fromRgb(0, 200, 200)));
         } else {

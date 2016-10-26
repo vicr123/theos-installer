@@ -9,6 +9,8 @@
 #include <QProcess>
 #include <QApplication>
 #include <QDir>
+#include <QIcon>
+#include "doingpartitioning.h"
 
 class DriveInfo : public QObject
 {
@@ -25,6 +27,7 @@ public:
         ntfs = 2,
         hfsplus = 3,
         fat32 = 4,
+        efisys = 5,
         freeSpace = -1
     };
 

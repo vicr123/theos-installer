@@ -10,4 +10,7 @@
         <file>slide04.svg</file>
         <file>slide05.svg</file>
     </qresource>
+    <qresource prefix="/">
+        <file>icon.png</file>
+    </qresource>
 </RCC>

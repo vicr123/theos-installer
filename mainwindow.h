@@ -14,6 +14,7 @@
 #include <QDesktopWidget>
 #include <QPropertyAnimation>
 #include <QParallelAnimationGroup>
+#include <QProgressDialog>
 #include "internetconnection.h"
 #include "worker.h"
 #include "erasedrivedialog.h"
@@ -23,6 +24,7 @@
 #include <unistd.h>
 #include <linux/reboot.h>
 #include <sys/reboot.h>
+
 //#include <QSystemBatteryInfo>
 
 namespace Ui {
@@ -51,6 +53,7 @@ public:
 public:
     bool performNetworkCheck = true;
     bool dryrun = false;
+    bool noProbe = false;
 
     QString partition;
     bool formatPartition = false;
@@ -118,6 +121,7 @@ private slots:
 private:
     stageType stage = Welcome;
     QString mirrors;
+    QStringList detectedOperatingSystems;
 
     QThread *installThread;
 

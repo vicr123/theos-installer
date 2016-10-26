@@ -15,13 +15,90 @@ void installWorker::process(bool useOfflineMethod) {
     connect(p, SIGNAL(readyReadStandardError()), this, SLOT(errorAvaliable()));
     p->setProcessChannelMode(QProcess::MergedChannels);
     if (useOfflineMethod) {
-        emit message("Copying files. This stage can take a while.");
+        //emit message("Copying files. This stage can take a while.");
         standardOutput.append("[theos_installer] Copying Files.");
+        emit message("Getting ready to copy files...");
+
         emit output(standardOutput);
 
-        p->start("cp -ax / /mnt");
-        p->waitForFinished(-1);
+        //p->start("cp -ax / /mnt");
+        //p->waitForFinished(-1);
 
+        //QList<QStorageInfo> mountedFileSystems = QStorageInfo::mountedVolumes();
+
+        //Count files to copy and add them to list.
+        //QStringList directoriesToCopy;
+        QStringList filesToCopy;
+        QDir rootDir = QDir::root();
+
+        qulonglong bytesToCopy = 0;
+        QDirIterator iterator(rootDir, QDirIterator::Subdirectories);
+        while (iterator.hasNext()) {
+            QString file = iterator.next();
+            if (file.endsWith("/.") || file.endsWith("/..") || QDir(file).exists()) { //Don't want these directories
+                continue;
+            } else {
+                QStorageInfo storageInfo(file);
+                if (!storageInfo.isRoot() || file.startsWith("/run/archiso/")) { //Stay on this filesystem.
+                    continue;
+                } else {
+                    filesToCopy.append(file);
+
+                    QFileInfo info(file);
+                    if (info.symLinkTarget() == "") { //This file is not a symlink.
+                        bytesToCopy = bytesToCopy + info.size();
+                    }
+                }
+            }
+        }
+
+        emit progress(0, bytesToCopy / 1024);
+        emit message("Copying files...");
+
+        qulonglong totalProg = 0;
+        qulonglong updateTimer = 0;
+        for (QString fileName : filesToCopy) {
+            QFile file(fileName);
+            QString destinationName = "/mnt" + fileName;
+
+            QString target = file.symLinkTarget();
+            if (target == "") { //This file is not a symlink
+                QString path = destinationName;
+                path = path.left(path.lastIndexOf("/"));
+                rootDir.mkpath(path);
+                QFile dest(destinationName);
+                file.open(QFile::ReadOnly);
+                dest.open(QFile::WriteOnly);
+                if (dest.error() != QFile::NoError) {
+                    qDebug() << destinationName + ":" + dest.errorString();
+
+                }
+
+                while (!file.atEnd()) {
+                    QByteArray buf = file.read(1048576);
+                    dest.write(buf);
+                    totalProg = totalProg + buf.size();
+                    updateTimer = updateTimer + buf.size();
+                    if (updateTimer > 52428800) {
+                        emit progress(totalProg / 1024, bytesToCopy / 1024);
+                        updateTimer = 0;
+                    }
+                }
+
+                file.close();
+                dest.close();
+
+                dest.setPermissions(file.permissions());
+
+            } else {
+                QString path = target;
+                path = path.left(path.lastIndexOf("/"));
+                rootDir.mkpath(path);
+                QFile::link("/mnt" + fileName, "/mnt" + target);
+            }
+        }
+
+        emit progress(0, 0);
         emit message("Configuring System...");
 
         QProcess* uname = new QProcess();
@@ -147,7 +224,7 @@ void installWorker::process(bool useOfflineMethod) {
     if (QDir("/sys/firmware/efi").exists()) {
         standardOutput.append("[theos_installer] Executing command arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=grub\n");
 
-        p->start("arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=grub");
+        p->start("arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/boot/ --bootloader-id=theos_grub");
         p->waitForFinished(-1);
     } else {
         standardOutput.append("[theos_installer] Executing command arch-chroot /mnt grub-install --target=i386-pc " + disk + "\n");

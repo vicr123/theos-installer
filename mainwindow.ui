@@ -129,10 +129,6 @@
       <bool>true</bool>
      </property>
     </widget>
-    <zorder>label</zorder>
-    <zorder>label_2</zorder>
-    <zorder>label_9</zorder>
-    <zorder>ConfirmFrame</zorder>
    </widget>
    <widget class="QPushButton" name="backButton">
     <property name="geometry">
@@ -314,7 +310,8 @@
       <string>Connect to the Internet</string>
      </property>
      <property name="icon">
-      <iconset theme="network-connect"/>
+      <iconset theme="network-connect">
+       <normaloff>.</normaloff>.</iconset>
      </property>
     </widget>
     <widget class="QLabel" name="label_31">
@@ -379,7 +376,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_8">
+      <widget class="QLabel" name="detectedOperatingSystemsLabel">
        <property name="text">
         <string>Where do you want to install theOS?</string>
        </property>
@@ -402,7 +399,7 @@
           <x>0</x>
           <y>0</y>
           <width>409</width>
-          <height>274</height>
+          <height>278</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -430,11 +427,14 @@
          </item>
          <item>
           <widget class="QCommandLinkButton" name="partition_dualBoot">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Install next to Windows 10</string>
            </property>
            <property name="description">
-            <string>Data from Windows 10 will be kept. In the next screen, you'll be able to choose how much space to allocate to theOS.</string>
+            <string>Data from Windows 10 will be kept. In the next screen, you'll allocate disk space for each OS.</string>
            </property>
           </widget>
          </item>
@@ -960,85 +960,57 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QLabel" name="label_17">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>0</y>
-       <width>301</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>20</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Installing theOS</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_18">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>431</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>That's all the info we need right now. We're installing theOS now, and this could take a bit of time. Thanks for being patient.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QTextBrowser" name="standardOutput">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>110</y>
-       <width>431</width>
-       <height>191</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Noto Mono</family>
-       <pointsize>8</pointsize>
-      </font>
-     </property>
-    </widget>
-    <widget class="QLabel" name="installMessage">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>431</width>
-       <height>18</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-    <widget class="QProgressBar" name="progressBar_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>312</y>
-       <width>431</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="maximum">
-      <number>0</number>
-     </property>
-     <property name="value">
-      <number>-1</number>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QLabel" name="label_17">
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Installing theOS</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_18">
+       <property name="text">
+        <string>That's all the info we need right now. We're installing theOS now, and this could take a bit of time. Thanks for being patient.</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTextBrowser" name="standardOutput">
+       <property name="font">
+        <font>
+         <family>Noto Mono</family>
+         <pointsize>8</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="installMessage">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QProgressBar" name="installProgress">
+       <property name="maximum">
+        <number>0</number>
+       </property>
+       <property name="value">
+        <number>-1</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
    <widget class="QFrame" name="UserInfoFrame">
     <property name="geometry">
@@ -1526,25 +1498,28 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="resources.qrc">:/res/icon.svg</pixmap>
+      <pixmap resource="resources.qrc">:/icon.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
+   <zorder>InstallFrame</zorder>
    <zorder>ConfirmFrame</zorder>
-   <zorder>InstallingFrame</zorder>
    <zorder>quitButton</zorder>
    <zorder>forwardButton</zorder>
    <zorder>backButton</zorder>
    <zorder>progressBar</zorder>
    <zorder>ReadyToInstallFrame</zorder>
    <zorder>CompleteFrame</zorder>
-   <zorder>waitingFrame</zorder>
    <zorder>helpButton</zorder>
    <zorder>UserInfoFrame</zorder>
    <zorder>slideshow</zorder>
    <zorder>MirrorlistFrame</zorder>
-   <zorder>InstallFrame</zorder>
    <zorder>WelcomeFrame</zorder>
+   <zorder>waitingFrame</zorder>
+   <zorder>InstallingFrame</zorder>
    <zorder>sideFrame</zorder>
   </widget>
  </widget>

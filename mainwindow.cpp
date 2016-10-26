@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->setFixedSize(this->size());
 
+    detectedOperatingSystems.append("docheck");
 }
 
 MainWindow::~MainWindow()
@@ -105,10 +106,61 @@ void MainWindow::on_forwardButton_clicked()
             }
         }
 
+        if (detectedOperatingSystems.count() == 1 && !noProbe) {
+            if (detectedOperatingSystems.first() == "docheck") {
+                QProgressDialog dialog;
+                dialog.setMaximum(0);
+                dialog.setLabelText("Looking for other operating systems. Please wait...");
+                dialog.setWindowTitle("OS Detection");
+                dialog.setModal(true);
+                dialog.setCancelButton(NULL);
+                dialog.show();
 
+                QProcess* osprober = new QProcess();
+                osprober->start("os-prober");
+                osprober->waitForStarted();
+
+                while (osprober->state() == QProcess::Running) {
+                    QApplication::processEvents();
+                }
+
+                dialog.close();
+
+                QStringList detectedOperatingSystems = QString(osprober->readAll()).split("\n", QString::SkipEmptyParts);
+                qDebug() << detectedOperatingSystems;
+                delete osprober;
+
+                this->detectedOperatingSystems = detectedOperatingSystems;
+            }
+        } else if (noProbe) {
+            detectedOperatingSystems.clear();
+        }
+
+        if (detectedOperatingSystems.count() == 0) {
+            ui->partition_dualBoot->setVisible(false);
+        } else if (detectedOperatingSystems.count() == 1) {
+            QString operatingSystemParts = detectedOperatingSystems.first();
+            QStringList parts = operatingSystemParts.split(":");
+
+            QString operatingSystem = parts.at(1);
+
+            if (operatingSystem == "") {
+                operatingSystem = parts.at(2);
+            } else {
+                operatingSystem = operatingSystem.left(operatingSystem.indexOf("(") - 1);
+            }
+
+            ui->detectedOperatingSystemsLabel->setText(operatingSystem + " was detected on this PC.");
+            ui->partition_dualBoot->setText("Install next to " + operatingSystem);
+            ui->partition_dualBoot->setDescription("Data from " + operatingSystem + " will be kept. In the next screen, you'll allocate disk space for each OS.");
+        } else {
+            ui->partition_dualBoot->setVisible(false);
+            for (QString operatingSystem : detectedOperatingSystems) {
+
+            }
+        }
 
         ui->forwardButton->setEnabled(false);
-        ui->partition_dualBoot->setVisible(false);
         delete lsblk;
 
     } else if (stage == Partition) {
@@ -162,6 +214,10 @@ void MainWindow::on_forwardButton_clicked()
         connect(w, SIGNAL(output(QString)), this, SLOT(installOutput(QString)));
         connect(w, SIGNAL(finished()), this, SLOT(install_complete()));
         connect(w, SIGNAL(failed()), this, SLOT(install_error()));
+        connect(w, &installWorker::progress, [=](qulonglong value, qulonglong max) {
+            ui->installProgress->setMaximum(max);
+            ui->installProgress->setValue(value);
+        });
         installThread->start();
 
         ui->forwardButton->setText("Next");

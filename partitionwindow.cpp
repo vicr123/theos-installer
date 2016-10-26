@@ -112,6 +112,18 @@ void PartitionWindow::reloadPartitions() {
                     item->setText(calculateSize(operation.at(2).toLongLong()) + " " + format + " with label " + operation.at(4).toString());
                 }
                 ui->listWidget->addItem(item);
+            } else if (operation.first().toString() == "size") {
+                QListWidgetItem* item = new QListWidgetItem();
+                item->setIcon(QIcon::fromTheme("go-last"));
+
+                qulonglong newSize = operation.at(2).toLongLong();
+                QString label = operation.at(3).toString();
+                qulonglong currentSize = operation.at(4).toLongLong();
+
+                item->setText(label + ": " + calculateSize(currentSize) + " > " + calculateSize(newSize));
+
+                ui->listWidget->addItem(item);
+
             }
         }
         this->currentIndex = currentIndex;
@@ -142,7 +154,8 @@ void PartitionWindow::on_pushButton_clicked()
         return;
     }
 
-    if (QMessageBox::warning(this, "Applying Changes", "We're about to make changes to your disk. Ensure that the operations are correct, then click OK to apply the changes.", QMessageBox::Ok | QMessageBox::Abort, QMessageBox::Ok) == QMessageBox::Ok) {
+    if (QMessageBox::warning(this, "Applying Changes", "We're about to make changes to your disk. Ensure that the operations are correct, then click OK to apply the changes.\n\n"
+                             "It's advisable to make a backup because we're doing some dangerous things here.", QMessageBox::Ok | QMessageBox::Abort, QMessageBox::Ok) == QMessageBox::Ok) {
         if (driveInfo->applyOperationList(this->drive) == DriveInfo::success) {
             this->accept();
         } else {
